@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, CalendarDays, BarChart3, Tag, LogOut, Scissors, Star, Users, Image, FolderOpen } from "lucide-react";
+import { LayoutDashboard, CalendarDays, BarChart3, Tag, LogOut, Scissors, Star, Users, FolderOpen } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 
@@ -19,7 +19,6 @@ export default function AdminNav({ mobile = false }: { mobile?: boolean }) {
     { href: `/${locale}/admin/promos`, label: t.admin.promos, Icon: Tag },
     { href: `/${locale}/admin/categories`, label: t.admin.categories ?? "Categories", Icon: FolderOpen },
     { href: `/${locale}/admin/services`, label: t.admin.services, Icon: Scissors },
-    { href: `/${locale}/admin/gallery`, label: t.admin.gallery, Icon: Image },
     { href: `/${locale}/admin/points`, label: t.admin.points, Icon: Star },
     { href: `/${locale}/admin/users`, label: t.admin.clients, Icon: Users },
   ];
