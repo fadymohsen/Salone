@@ -220,19 +220,19 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-5 grid grid-cols-3 gap-3">
-            <div className="bg-gradient-to-br from-primary/8 to-primary/3 rounded-2xl px-4 py-3.5 text-center">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">{t.dashboard.totalEarned}</p>
-              <p className="font-serif text-2xl font-bold text-glam-text">{couponsData?.totalEarned ?? 0}</p>
+            <div className="bg-gradient-to-br from-primary/8 to-primary/3 rounded-2xl px-4 py-3.5 text-center flex flex-col justify-between">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide">{t.dashboard.totalEarned}</p>
+              <p className="font-serif text-2xl font-bold text-glam-text mt-auto">{couponsData?.totalEarned ?? 0}</p>
               <p className="text-xs text-muted mt-0.5">pts</p>
             </div>
-            <div className="bg-gradient-to-br from-secondary/8 to-secondary/3 rounded-2xl px-4 py-3.5 text-center">
-              <p className="text-xs font-bold text-secondary uppercase tracking-wide mb-1">{t.dashboard.redeemed}</p>
-              <p className="font-serif text-2xl font-bold text-glam-text">{couponsData?.totalRedeemed ?? 0}</p>
+            <div className="bg-gradient-to-br from-secondary/8 to-secondary/3 rounded-2xl px-4 py-3.5 text-center flex flex-col justify-between">
+              <p className="text-xs font-bold text-secondary uppercase tracking-wide">{t.dashboard.redeemed}</p>
+              <p className="font-serif text-2xl font-bold text-glam-text mt-auto">{couponsData?.totalRedeemed ?? 0}</p>
               <p className="text-xs text-muted mt-0.5">pts</p>
             </div>
-            <div className="bg-gradient-to-br from-green-500/8 to-green-500/3 rounded-2xl px-4 py-3.5 text-center">
-              <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-1">{t.dashboard.remaining}</p>
-              <p className="font-serif text-2xl font-bold text-glam-text">{user.points}</p>
+            <div className="bg-gradient-to-br from-green-500/8 to-green-500/3 rounded-2xl px-4 py-3.5 text-center flex flex-col justify-between">
+              <p className="text-xs font-bold text-green-600 uppercase tracking-wide">{t.dashboard.remaining}</p>
+              <p className="font-serif text-2xl font-bold text-glam-text mt-auto">{user.points}</p>
               <p className="text-xs text-muted mt-0.5">pts</p>
             </div>
           </div>
@@ -299,8 +299,8 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-xs text-muted line-through">{s.price} {locale === "ar" ? "ج.م" : "EGP"}</span>
                         <span className="text-xs font-bold text-green-600">{discountedPrice} {locale === "ar" ? "ج.م" : "EGP"}</span>
-                        <span className="text-xs font-bold text-primary bg-pastel-pink px-1.5 py-0.5 rounded-full">-{s.rewardDiscount}%</span>
                       </div>
+                      <span className="inline-flex items-center text-xs font-bold text-primary bg-pastel-pink px-1.5 py-0.5 rounded-full mt-1 w-fit">-{s.rewardDiscount}%</span>
                       {!canAfford && (
                         <p className="text-xs text-red-400 mt-0.5">{locale === "ar" ? `تحتاجين ${s.pointsPrice - user.points} نقطة إضافية` : `Need ${s.pointsPrice - user.points} more points`}</p>
                       )}
@@ -427,15 +427,14 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    {/* Line 1: Service name + loyalty tag */}
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
-                      {b.paymentMethod === "points" && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap shrink-0">
-                          <Star size={8} aria-hidden="true" /> {locale === "ar" ? "ولاء" : "Loyalty"}
-                        </span>
-                      )}
-                    </div>
+                    {/* Loyalty tag */}
+                    {b.paymentMethod === "points" && (
+                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap mb-1">
+                        <Star size={8} aria-hidden="true" /> {locale === "ar" ? "برنامج الولاء" : "Loyalty Program"}
+                      </span>
+                    )}
+                    {/* Service name */}
+                    <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
                     {/* Line 2: Date & time */}
                     <p className="text-xs text-muted mt-0.5">{b.bookingDate} · {b.bookingTime}</p>
                     {/* Line 3: Points + status */}
