@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   CalendarDays, Clock, Star, LogOut, Loader2, ChevronLeft, ChevronRight,
-  CheckCircle2, XCircle, RefreshCw, Sparkles, Gift, Tag,
+  CheckCircle2, XCircle, RefreshCw, Sparkles, Tag,
 } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
@@ -82,7 +82,6 @@ export default function DashboardPage() {
   const [newTime, setNewTime] = useState("11:00");
   const [saving, setSaving] = useState(false);
   const [redeemServices, setRedeemServices] = useState<RedeemService[]>([]);
-  const [generatingCoupon, setGeneratingCoupon] = useState(false);
   const [redeemId, setRedeemId] = useState<string | null>(null);
   const [redeemDate, setRedeemDate] = useState("");
   const [redeemTime, setRedeemTime] = useState("");
@@ -163,31 +162,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleGenerateCoupon = async () => {
-    setGeneratingCoupon(true);
-    try {
-      const res = await fetch("/api/user/generate-coupon", { method: "POST" });
-      if (res.ok) {
-        // Refresh all data
-        const [meData, bData, cData] = await Promise.all([
-          fetch("/api/auth/me").then(r => r.json()),
-          fetch("/api/user/bookings").then(r => r.json()),
-          fetch("/api/user/coupons").then(r => r.json()),
-        ]);
-        if (meData.user) setUser(meData.user);
-        setBookings(Array.isArray(bData) ? bData : []);
-        if (cData && !cData.error) setCouponsData(cData);
-      } else {
-        const data = await res.json();
-        alert(data.error || (locale === "ar" ? "حدث خطأ" : "Something went wrong"));
-      }
-    } catch {
-      alert(locale === "ar" ? "خطأ في الاتصال" : "Connection error");
-    } finally {
-      setGeneratingCoupon(false);
-    }
-  };
-
   const selectedRedeemService = redeemServices.find(s => s.id === redeemId);
   const redeemAvailableDays = selectedRedeemService?.availableDays
     ? selectedRedeemService.availableDays.split(",").map(d => parseInt(d.trim(), 10)).filter(n => !isNaN(n))
@@ -255,60 +229,27 @@ export default function DashboardPage() {
           {t.dashboard.bookNew}
         </Link>
 
-        {/* Points & Coupons */}
-        {couponsData && (
+        {/* Promo Coupons (manually created by admin for this user) */}
+        {couponsData && couponsData.coupons.length > 0 && (
           <div className="bg-white rounded-3xl p-6 border border-border shadow-sm shadow-primary/5 space-y-4">
             <h2 className="font-serif text-base font-bold text-glam-text flex items-center gap-2">
-              <Gift size={15} className="text-primary" aria-hidden="true" />
-              {t.dashboard.rewards}
+              <Tag size={15} className="text-primary" aria-hidden="true" />
+              {t.dashboard.couponCodes}
             </h2>
-
-            {/* Auto-coupon progress (only if threshold > 0) */}
-            {couponsData.threshold > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs font-bold text-glam-text">{t.dashboard.pointsProgress}</p>
-                  <p className="text-xs font-bold text-primary">{user.points} / {couponsData.threshold} pts</p>
-                </div>
-                <div className="h-2.5 bg-pastel-pink rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (user.points / couponsData.threshold) * 100)}%` }} />
-                </div>
-                {user.points >= couponsData.threshold ? (
-                  <button
-                    onClick={handleGenerateCoupon}
-                    disabled={generatingCoupon}
-                    className="mt-3 w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-2xl shadow-md shadow-primary/25 hover:bg-secondary transition-all duration-200 disabled:opacity-50 cursor-pointer active:scale-[0.98]"
-                  >
-                    {generatingCoupon
-                      ? <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {locale === "ar" ? "جاري الإنشاء..." : "Generating..."}</>
-                      : <><Gift size={14} aria-hidden="true" /> {locale === "ar" ? `استبدال ${couponsData.threshold} نقطة بكوبون ${couponsData.couponDiscount}% خصم` : `Redeem ${couponsData.threshold} pts for ${couponsData.couponDiscount}% off coupon`}</>
-                    }
-                  </button>
-                ) : (
-                  <p className="text-xs text-muted mt-1.5">
-                    {couponsData.threshold - user.points} {t.dashboard.morePoints1} {couponsData.couponDiscount}% {t.dashboard.morePoints2}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {couponsData.coupons.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-bold text-glam-text">{t.dashboard.couponCodes}</p>
-                {couponsData.coupons.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between bg-pastel-pink/40 border border-primary/15 rounded-xl px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Tag size={13} className="text-primary shrink-0" aria-hidden="true" />
-                      <span className="font-black text-primary tracking-wider text-sm">{c.code}</span>
-                    </div>
-                    <div className="text-end">
-                      <p className="text-xs font-bold text-glam-text">{c.discount}% {t.dashboard.off}</p>
-                      {c.maxUsage && <p className="text-xs text-muted">{c.usageCount}/{c.maxUsage} {t.dashboard.used}</p>}
-                    </div>
+            <div className="space-y-2">
+              {couponsData.coupons.map((c) => (
+                <div key={c.id} className="flex items-center justify-between bg-pastel-pink/40 border border-primary/15 rounded-xl px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Tag size={13} className="text-primary shrink-0" aria-hidden="true" />
+                    <span className="font-black text-primary tracking-wider text-sm">{c.code}</span>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="text-end">
+                    <p className="text-xs font-bold text-glam-text">{c.discount}% {t.dashboard.off}</p>
+                    {c.maxUsage && <p className="text-xs text-muted">{c.usageCount}/{c.maxUsage} {t.dashboard.used}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

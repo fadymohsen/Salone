@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star, Save, Loader2, Info, Zap, Gift, Percent, Check } from "lucide-react";
+import { Star, Loader2, Info, Zap, Gift, Percent } from "lucide-react";
 
 type Config = {
   id: string;
-  pointsPerBooking: number;
-  pointsThreshold: number;
-  couponDiscount: number;
 };
 
 type Service = {
@@ -23,11 +20,7 @@ const INPUT_CLS =
   "w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150";
 
 export default function PointsConfigManager() {
-  const [config, setConfig] = useState<Config | null>(null);
-  const [form, setForm] = useState({ pointsThreshold: "", couponDiscount: "" });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -35,41 +28,11 @@ export default function PointsConfigManager() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/admin/points-config").then(r => r.json()),
-      fetch("/api/admin/services").then(r => r.json()),
-    ]).then(([cfgData, svcData]) => {
-      setConfig(cfgData);
-      setForm({
-        pointsThreshold: String(cfgData.pointsThreshold),
-        couponDiscount: String(cfgData.couponDiscount),
-      });
+    fetch("/api/admin/services").then(r => r.json()).then(svcData => {
       setServices(Array.isArray(svcData) ? svcData : []);
       setLoading(false);
     });
   }, []);
-
-  const handleSaveConfig = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setSaved(false);
-    const res = await fetch("/api/admin/points-config", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        pointsPerBooking: 1, // 1 EGP = 1 point, but this field is kept for compatibility
-        pointsThreshold: Number(form.pointsThreshold),
-        couponDiscount: Number(form.couponDiscount),
-      }),
-    });
-    setSaving(false);
-    if (res.ok) {
-      const data: Config = await res.json();
-      setConfig(data);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    }
-  };
 
   const handleToggleReward = async (service: Service, discount: number | null) => {
     setSavingId(service.id);
@@ -100,8 +63,6 @@ export default function PointsConfigManager() {
     );
   }
 
-  const threshold = Number(form.pointsThreshold) || 0;
-  const discount = Number(form.couponDiscount) || 0;
   const rewardServices = services.filter(s => s.rewardDiscount != null);
   const nonRewardServices = services.filter(s => s.rewardDiscount == null);
 
@@ -119,73 +80,15 @@ export default function PointsConfigManager() {
             Every <strong className="text-glam-text">1 EGP</strong> paid = <strong className="text-glam-text">1 point</strong> earned automatically
           </li>
           <li className="flex items-start gap-2">
-            <Star size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-            {threshold > 0
-              ? <>After reaching <strong className="text-glam-text">{threshold} points</strong>, an auto-coupon for <strong className="text-glam-text">{discount}% off</strong> is generated</>
-              : <>Auto-coupon is <strong className="text-glam-text">disabled</strong> — set a points threshold above to enable it</>
-            }
+            <Gift size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
+            Select specific services below as <strong className="text-glam-text">redeemable rewards</strong> with a custom discount %
           </li>
           <li className="flex items-start gap-2">
-            <Gift size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-            You can also select specific services below as <strong className="text-glam-text">redeemable rewards</strong> with a custom discount %
+            <Star size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
+            Users redeem points from their account to get the discount on selected services
           </li>
         </ol>
       </div>
-
-      {/* Auto-Coupon Config */}
-      <form onSubmit={handleSaveConfig} className="bg-white rounded-2xl border border-border p-6 shadow-sm space-y-5">
-        <h2 className="font-serif font-bold text-glam-text flex items-center gap-2">
-          <Star size={16} className="text-primary" aria-hidden="true" />
-          Auto-Coupon Settings
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="pts-threshold" className="block text-xs font-bold text-glam-text/70 mb-1.5">
-              Points Needed for Auto-Coupon <span className="text-muted font-normal">(optional — leave 0 to disable)</span>
-            </label>
-            <input
-              id="pts-threshold"
-              type="number"
-              min="0"
-              value={form.pointsThreshold}
-              onChange={(e) => setForm({ ...form, pointsThreshold: e.target.value })}
-              className={INPUT_CLS}
-            />
-            <p className="text-xs text-muted mt-1">e.g., 500 = spend 500 EGP total to earn a coupon. Set 0 to disable auto-coupons.</p>
-          </div>
-          <div>
-            <label htmlFor="coupon-discount" className="block text-xs font-bold text-glam-text/70 mb-1.5">
-              Auto-Coupon Discount %
-            </label>
-            <input
-              id="coupon-discount"
-              type="number"
-              min="0"
-              max="100"
-              value={form.couponDiscount}
-              onChange={(e) => setForm({ ...form, couponDiscount: e.target.value })}
-              disabled={!Number(form.pointsThreshold)}
-              className={`${INPUT_CLS} disabled:opacity-50`}
-            />
-            <p className="text-xs text-muted mt-1">Discount % on the auto-generated coupon</p>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex items-center justify-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-secondary transition-all duration-150 disabled:opacity-50 cursor-pointer shadow-sm shadow-primary/20 min-h-[44px]"
-        >
-          {saving ? (
-            <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> Saving...</>
-          ) : saved ? (
-            <><Check size={14} aria-hidden="true" /> Saved!</>
-          ) : (
-            <><Save size={14} aria-hidden="true" /> Save Settings</>
-          )}
-        </button>
-      </form>
 
       {/* Service Rewards */}
       <div className="bg-white rounded-2xl border border-border p-6 shadow-sm space-y-5">
