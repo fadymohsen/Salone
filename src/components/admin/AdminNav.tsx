@@ -14,8 +14,8 @@ export default function AdminNav({ mobile = false }: { mobile?: boolean }) {
 
   const links = [
     { href: `/${locale}/admin`, label: t.admin.dashboard, Icon: LayoutDashboard },
-    { href: `/${locale}/admin/orders`, label: t.admin.orders, Icon: CalendarDays },
     { href: `/${locale}/admin/analytics`, label: t.admin.analytics, Icon: BarChart3 },
+    { href: `/${locale}/admin/orders`, label: t.admin.orders, Icon: CalendarDays },
     { href: `/${locale}/admin/promos`, label: t.admin.promos, Icon: Tag },
     { href: `/${locale}/admin/categories`, label: t.admin.categories ?? "Categories", Icon: FolderOpen },
     { href: `/${locale}/admin/services`, label: t.admin.services, Icon: Scissors },
