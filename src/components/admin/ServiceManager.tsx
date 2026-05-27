@@ -13,7 +13,9 @@ import type { LucideIcon } from "lucide-react";
 type Service = {
   id: string;
   name: string;
+  nameAr: string | null;
   description: string | null;
+  descriptionAr: string | null;
   price: number;
   isActive: boolean;
   popular: boolean;
@@ -25,7 +27,9 @@ type Service = {
 
 type FormState = {
   name: string;
+  nameAr: string;
   description: string;
+  descriptionAr: string;
   price: number;
   isActive: boolean;
   popular: boolean;
@@ -41,7 +45,9 @@ const DEFAULT_TIMES = ["11:00", "12:30", "14:00", "15:30", "17:00", "18:30", "20
 
 const EMPTY_FORM: FormState = {
   name: "",
+  nameAr: "",
   description: "",
+  descriptionAr: "",
   price: 0,
   isActive: true,
   popular: false,
@@ -103,7 +109,9 @@ function sortTimes(times: string[]): string[] {
 function formFromService(s: Service): FormState {
   return {
     name: s.name,
+    nameAr: s.nameAr ?? "",
     description: s.description ?? "",
+    descriptionAr: s.descriptionAr ?? "",
     price: s.price,
     isActive: s.isActive,
     popular: s.popular,
@@ -162,7 +170,9 @@ export default function ServiceManager() {
       modal === "edit" ? `/api/admin/services/${editId}` : "/api/admin/services";
     const body = {
       name: form.name,
+      nameAr: form.nameAr,
       description: form.description,
+      descriptionAr: form.descriptionAr,
       price: Number(form.price),
       isActive: form.isActive,
       popular: form.popular,
@@ -386,10 +396,10 @@ export default function ServiceManager() {
               onSubmit={handleSave}
               className="overflow-y-auto flex-1 px-6 py-5 space-y-5"
             >
-              {/* Name */}
+              {/* Name (English) */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
-                  Name *
+                  Name (English) *
                 </label>
                 <input
                   type="text"
@@ -401,16 +411,46 @@ export default function ServiceManager() {
                 />
               </div>
 
-              {/* Description */}
+              {/* Name (Arabic) */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
-                  Description
+                  Name (Arabic)
+                </label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={form.nameAr}
+                  onChange={(e) => setForm({ ...form, nameAr: e.target.value })}
+                  placeholder="مانيكير كلاسيكي"
+                  className={INPUT}
+                />
+              </div>
+
+              {/* Description (English) */}
+              <div>
+                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
+                  Description (English)
                 </label>
                 <input
                   type="text"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Short description…"
+                  className={INPUT}
+                />
+              </div>
+
+              {/* Description (Arabic) */}
+              <div>
+                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
+                  Description (Arabic)
+                </label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={form.descriptionAr}
+                  onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
+                  placeholder="وصف قصير…"
                   className={INPUT}
                 />
               </div>

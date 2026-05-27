@@ -15,7 +15,7 @@ const INPUT_CLASS =
 
 const DEFAULT_TIMES = ["11:00","12:30","14:00","15:30","17:00","18:30","20:00"];
 
-type ServiceOption = { id: string; name: string; price: number; availableDays: string; timeSlots: string };
+type ServiceOption = { id: string; name: string; nameAr: string | null; price: number; availableDays: string; timeSlots: string };
 
 function CalendarPicker({
   value, onChange, availableDays = [], months, dayNames,
@@ -313,7 +313,7 @@ function BookingFormContent() {
                     <option value="">{t.booking.loadingServices}</option>
                   ) : (
                     [...services].sort((a, b) => a.name.localeCompare(b.name)).map(s => (
-                      <option key={s.id} value={s.name}>{s.name}</option>
+                      <option key={s.id} value={s.name}>{locale === "ar" ? (s.nameAr || s.name) : s.name}</option>
                     ))
                   )}
                 </select>

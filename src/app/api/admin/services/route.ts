@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   if (!(await isAdminAuthenticated()))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, description, price, popular, iconName, availableDays, timeSlots } = await request.json();
+  const { name, nameAr, description, descriptionAr, price, popular, iconName, availableDays, timeSlots } = await request.json();
 
   if (!name || price == null)
     return NextResponse.json({ error: "Name and price are required." }, { status: 400 });
@@ -29,7 +29,9 @@ export async function POST(request: Request) {
     const service = await prisma.service.create({
       data: {
         name,
+        nameAr: nameAr || null,
         description: description || null,
+        descriptionAr: descriptionAr || null,
         price: Number(price),
         popular: Boolean(popular),
         iconName: iconName || null,

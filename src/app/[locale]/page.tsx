@@ -50,8 +50,6 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           <span className="font-serif text-xl font-bold text-primary tracking-tight">{t.common.brand}</span>
 
           <nav className="hidden sm:flex items-center gap-8 text-sm font-medium text-glam-text/70" aria-label="Main navigation">
-            <a href="#services" className="hover:text-primary transition-colors duration-150 cursor-pointer">{t.nav.services}</a>
-            <a href="#how" className="hover:text-primary transition-colors duration-150 cursor-pointer">{t.nav.howItWorks}</a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -163,8 +161,8 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
                   <div className="w-11 h-11 rounded-2xl bg-pastel-pink flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-colors duration-200">
                     <Icon size={20} className="text-primary" aria-hidden="true" strokeWidth={1.75} />
                   </div>
-                  <h3 className="font-serif text-base font-semibold text-glam-text mb-2">{s.name}</h3>
-                  <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{s.description ?? ""}</p>
+                  <h3 className="font-serif text-base font-semibold text-glam-text mb-2">{locale === "ar" ? (s.nameAr || s.name) : s.name}</h3>
+                  <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{locale === "ar" ? (s.descriptionAr || s.description || "") : (s.description ?? "")}</p>
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
                     <span className="text-sm font-bold text-primary">{t.services.from} {s.price} {t.common.egp}</span>
                     <Link

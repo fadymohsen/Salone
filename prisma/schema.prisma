@@ -70,7 +70,9 @@ model Booking {
 model Service {
   id            String         @id @default(uuid())
   name          String         @unique
+  nameAr        String?
   description   String?
+  descriptionAr String?
   price         Int
   isActive      Boolean        @default(true)
   sortOrder     Int            @default(0)

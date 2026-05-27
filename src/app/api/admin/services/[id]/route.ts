@@ -17,7 +17,9 @@ export async function PUT(
       where: { id },
       data: {
         name: body.name,
+        nameAr: body.nameAr || null,
         description: body.description || null,
+        descriptionAr: body.descriptionAr || null,
         price: Number(body.price),
         isActive: Boolean(body.isActive),
         popular: Boolean(body.popular),

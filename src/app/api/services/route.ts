@@ -8,7 +8,9 @@ export async function GET() {
     select: {
       id: true,
       name: true,
+      nameAr: true,
       description: true,
+      descriptionAr: true,
       price: true,
       popular: true,
       iconName: true,
