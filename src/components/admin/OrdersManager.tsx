@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle } from "lucide-react";
 
 type Booking = {
   id: string;
@@ -40,6 +40,8 @@ export default function OrdersManager() {
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [form, setForm] = useState<Booking>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Booking | null>(null);
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -76,18 +78,20 @@ export default function OrdersManager() {
       if (res.ok) { closeModal(); fetchBookings(); }
       else {
         const d = await res.json().catch(() => ({}));
-        alert(d.error ?? "Save failed. Check all fields.");
+        setToast(d.error ?? "Save failed. Check all fields.");
+        setTimeout(() => setToast(null), 3000);
       }
     } catch {
-      alert("Network error. Please try again.");
+      setToast("Network error. Please try again.");
+      setTimeout(() => setToast(null), 3000);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Cancel ${name}'s booking?`)) return;
-    await fetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
+  const handleDelete = async (booking: Booking) => {
+    await fetch(`/api/admin/bookings/${booking.id}`, { method: "DELETE" });
+    setConfirmDelete(null);
     fetchBookings();
   };
 
@@ -197,7 +201,7 @@ export default function OrdersManager() {
                     <Pencil size={13} aria-hidden="true" />
                   </button>
                   <button
-                    onClick={() => handleDelete(b.id, b.clientName)}
+                    onClick={() => setConfirmDelete(b)}
                     title="Delete booking"
                     className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 hover:bg-red-500 hover:text-white transition-all duration-150 cursor-pointer"
                   >
@@ -217,7 +221,7 @@ export default function OrdersManager() {
                     <button onClick={() => openEdit(b)} className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink cursor-pointer">
                       <Pencil size={13} aria-hidden="true" />
                     </button>
-                    <button onClick={() => handleDelete(b.id, b.clientName)} className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 cursor-pointer">
+                    <button onClick={() => setConfirmDelete(b)} className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 cursor-pointer">
                       <Trash2 size={13} aria-hidden="true" />
                     </button>
                   </div>
@@ -312,6 +316,49 @@ export default function OrdersManager() {
                 ) : modal === "create" ? "Create Booking" : "Save Changes"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Branded Confirm Delete */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDelete(null); }}>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                <Trash2 size={20} className="text-red-500" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-serif font-bold text-glam-text">Delete Booking</p>
+                <p className="text-sm text-muted mt-0.5">Cancel <strong className="text-glam-text">{confirmDelete.clientName}</strong>&apos;s booking for <strong className="text-glam-text">{confirmDelete.serviceType}</strong>?</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)}
+                className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">
+                Keep
+              </button>
+              <button onClick={() => handleDelete(confirmDelete)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all cursor-pointer min-h-[48px]">
+                <Trash2 size={14} aria-hidden="true" /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Branded Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
+          <div className="flex items-center gap-3 bg-glam-text text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-black/20 max-w-sm">
+            <div className="w-8 h-8 rounded-xl bg-red-500 flex items-center justify-center shrink-0">
+              <AlertTriangle size={14} aria-hidden="true" />
+            </div>
+            <p className="text-sm font-medium flex-1">{toast}</p>
+            <button onClick={() => setToast(null)} className="text-white/50 hover:text-white cursor-pointer">
+              <X size={14} aria-hidden="true" />
+            </button>
           </div>
         </div>
       )}
