@@ -17,6 +17,19 @@ export async function GET() {
         points: true,
         createdAt: true,
         _count: { select: { bookings: true } },
+        bookings: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            serviceType: true,
+            bookingDate: true,
+            bookingTime: true,
+            status: true,
+            paymentStatus: true,
+            amount: true,
+            createdAt: true,
+          },
+        },
       },
     });
     return NextResponse.json(users);
