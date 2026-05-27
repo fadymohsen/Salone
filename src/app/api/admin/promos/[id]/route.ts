@@ -14,7 +14,13 @@ export async function PUT(
 
   const promo = await prisma.promoCode.update({
     where: { id },
-    data: { isActive: body.isActive },
+    data: {
+      isActive: body.isActive !== undefined ? body.isActive : undefined,
+      code: body.code || undefined,
+      discount: body.discount !== undefined ? Number(body.discount) : undefined,
+      maxUsage: body.maxUsage !== undefined ? (body.maxUsage ? Number(body.maxUsage) : null) : undefined,
+      serviceIds: body.serviceIds !== undefined ? (body.serviceIds || null) : undefined,
+    },
   });
   return NextResponse.json(promo);
 }

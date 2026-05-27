@@ -36,6 +36,7 @@ export default function PromoManager() {
   const [confirmDelete, setConfirmDelete] = useState<Promo | null>(null);
   const [showServicePicker, setShowServicePicker] = useState(false);
   const [viewServicesPromo, setViewServicesPromo] = useState<Promo | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const fetchPromos = async () => {
     setLoading(true);
@@ -55,27 +56,39 @@ export default function PromoManager() {
     });
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const openEdit = (p: Promo) => {
+    setEditId(p.id);
+    setForm({
+      code: p.code,
+      discount: String(p.discount),
+      maxUsage: p.maxUsage ? String(p.maxUsage) : "",
+      selectedServices: p.serviceIds ? p.serviceIds.split(",") : [],
+      allServices: !p.serviceIds,
+    });
+    setShowForm(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const res = await fetch("/api/admin/promos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code: form.code,
-        discount: Number(form.discount),
-        maxUsage: form.maxUsage ? Number(form.maxUsage) : null,
-        serviceIds: form.allServices ? null : form.selectedServices.join(","),
-      }),
-    });
+    const payload = {
+      code: form.code,
+      discount: Number(form.discount),
+      maxUsage: form.maxUsage ? Number(form.maxUsage) : null,
+      serviceIds: form.allServices ? null : form.selectedServices.join(","),
+    };
+    const url = editId ? `/api/admin/promos/${editId}` : "/api/admin/promos";
+    const method = editId ? "PUT" : "POST";
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     setSaving(false);
     if (res.ok) {
       setForm({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [], allServices: true });
       setShowForm(false);
+      setEditId(null);
       fetchPromos();
     } else {
       const err = await res.json();
-      setToast(err.error ?? "Failed to create code.");
+      setToast(err.error ?? "Failed to save.");
       setTimeout(() => setToast(null), 3000);
     }
   };
@@ -100,7 +113,7 @@ export default function PromoManager() {
       {/* Header button */}
       <div className="flex justify-end">
         <button
-          onClick={() => { setForm({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [], allServices: true }); setShowForm(!showForm); }}
+          onClick={() => { setForm({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [], allServices: true }); setEditId(null); setShowForm(!showForm); }}
           className="flex items-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]"
         >
           {showForm ? (
@@ -113,10 +126,10 @@ export default function PromoManager() {
 
       {/* Create form */}
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-white rounded-2xl border border-border p-6 space-y-4 shadow-sm">
+        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-border p-6 space-y-4 shadow-sm">
           <h2 className="font-serif font-bold text-glam-text flex items-center gap-2">
             <Tag size={16} className="text-primary" aria-hidden="true" />
-            New Promo Code
+            {editId ? "Edit Promo Code" : "New Promo Code"}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
@@ -189,8 +202,8 @@ export default function PromoManager() {
             className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all duration-150 disabled:opacity-50 min-h-[48px] cursor-pointer shadow-sm shadow-primary/20"
           >
             {saving ? (
-              <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> Creating…</>
-            ) : "Create Promo Code"}
+              <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {editId ? "Saving…" : "Creating…"}</>
+            ) : editId ? "Save Changes" : "Create Promo Code"}
           </button>
         </form>
       )}
@@ -207,13 +220,13 @@ export default function PromoManager() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="hidden md:grid grid-cols-[1fr_90px_90px_110px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
-            <span>Code</span><span>Discount</span><span>Uses</span><span>Status</span><span>Actions</span>
+          <div className="hidden md:grid grid-cols-[1fr_90px_90px_110px_80px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide items-center">
+            <span>Code</span><span className="text-center">Discount</span><span className="text-center">Uses</span><span className="text-center">Status</span><span className="text-center">Actions</span>
           </div>
           {promos.map((p) => (
             <div key={p.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100">
               {/* Desktop */}
-              <div className="hidden md:grid grid-cols-[1fr_90px_90px_110px_100px] gap-3 px-5 py-3.5 items-center">
+              <div className="hidden md:grid grid-cols-[1fr_90px_90px_110px_80px] gap-3 px-5 py-3.5 items-center">
                 <div className="flex items-center gap-2">
                   <span className="font-black text-glam-text tracking-wider flex items-center gap-2">
                     <Tag size={13} className="text-primary/50" aria-hidden="true" />
@@ -244,13 +257,16 @@ export default function PromoManager() {
                   <Power size={11} aria-hidden="true" />
                   {p.isActive ? "Active" : "Paused"}
                 </button>
-                <button
-                  onClick={() => setConfirmDelete(p)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-red-400 hover:text-red-600 transition-colors duration-150 cursor-pointer"
-                >
-                  <Trash2 size={13} aria-hidden="true" />
-                  Delete
-                </button>
+                <div className="flex justify-center gap-1.5">
+                  <button onClick={() => openEdit(p)} title="Edit"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer">
+                    <Pencil size={13} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => setConfirmDelete(p)} title="Delete"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 hover:bg-red-500 hover:text-white transition-all duration-150 cursor-pointer">
+                    <Trash2 size={13} aria-hidden="true" />
+                  </button>
+                </div>
               </div>
 
               {/* Mobile */}
@@ -270,6 +286,10 @@ export default function PromoManager() {
                 >
                   <Power size={10} aria-hidden="true" />
                   {p.isActive ? "Active" : "Paused"}
+                </button>
+                <button onClick={() => openEdit(p)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink cursor-pointer">
+                  <Pencil size={13} aria-hidden="true" />
                 </button>
                 <button
                   onClick={() => setConfirmDelete(p)}
