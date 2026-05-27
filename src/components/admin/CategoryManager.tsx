@@ -94,29 +94,64 @@ export default function CategoryManager() {
           No categories yet. Add your first one!
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-border overflow-hidden">
+        <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
+          {/* Column headers */}
+          <div className="hidden md:grid grid-cols-[1fr_1fr_100px_80px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide items-center">
+            <span className="text-center">Name (EN)</span>
+            <span className="text-center">Name (AR)</span>
+            <span className="text-center">Status</span>
+            <span className="text-center">Actions</span>
+          </div>
           {categories.map((c) => (
-            <div key={c.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100 px-5 py-3.5 flex items-center gap-4">
-              <div className="flex-1">
-                <p className="font-bold text-sm text-glam-text">{c.name}</p>
-                {c.nameAr && <p className="text-xs text-muted" dir="rtl">{c.nameAr}</p>}
+            <div key={c.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100">
+              {/* Desktop */}
+              <div className="hidden md:grid grid-cols-[1fr_1fr_100px_80px] gap-3 px-5 py-3.5 items-center">
+                <p className="font-bold text-sm text-glam-text text-center">{c.name}</p>
+                <p className="text-sm text-muted text-center" dir="rtl">{c.nameAr ?? "—"}</p>
+                <div className="flex justify-center">
+                  <button onClick={() => toggleActive(c)}
+                    className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all duration-150 cursor-pointer ${
+                      c.isActive
+                        ? "bg-green-50 text-green-600 border-green-100 hover:bg-green-500 hover:text-white hover:border-green-500"
+                        : "bg-red-50 text-red-400 border-red-100 hover:bg-red-400 hover:text-white hover:border-red-400"
+                    }`}>
+                    <Power size={11} aria-hidden="true" /> {c.isActive ? "Active" : "Inactive"}
+                  </button>
+                </div>
+                <div className="flex justify-center gap-1.5">
+                  <button onClick={() => openEdit(c)} title="Edit"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer">
+                    <Pencil size={13} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => handleDelete(c.id, c.name)} title="Delete"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 hover:bg-red-500 hover:text-white transition-all duration-150 cursor-pointer">
+                    <Trash2 size={13} aria-hidden="true" />
+                  </button>
+                </div>
               </div>
-              <button onClick={() => toggleActive(c)}
-                className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all duration-150 cursor-pointer ${
-                  c.isActive
-                    ? "bg-green-50 text-green-600 border-green-100 hover:bg-green-500 hover:text-white hover:border-green-500"
-                    : "bg-red-50 text-red-400 border-red-100 hover:bg-red-400 hover:text-white hover:border-red-400"
-                }`}>
-                <Power size={11} aria-hidden="true" /> {c.isActive ? "Active" : "Inactive"}
-              </button>
-              <button onClick={() => openEdit(c)} title="Edit"
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer">
-                <Pencil size={13} aria-hidden="true" />
-              </button>
-              <button onClick={() => handleDelete(c.id, c.name)} title="Delete"
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 hover:bg-red-500 hover:text-white transition-all duration-150 cursor-pointer">
-                <Trash2 size={13} aria-hidden="true" />
-              </button>
+              {/* Mobile */}
+              <div className="md:hidden px-4 py-3 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-glam-text">{c.name}</p>
+                  {c.nameAr && <p className="text-xs text-muted" dir="rtl">{c.nameAr}</p>}
+                </div>
+                <button onClick={() => toggleActive(c)}
+                  className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-full border cursor-pointer transition-all duration-150 ${
+                    c.isActive
+                      ? "bg-green-50 text-green-600 border-green-100"
+                      : "bg-red-50 text-red-400 border-red-100"
+                  }`}>
+                  <Power size={10} aria-hidden="true" /> {c.isActive ? "On" : "Off"}
+                </button>
+                <button onClick={() => openEdit(c)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink cursor-pointer">
+                  <Pencil size={13} aria-hidden="true" />
+                </button>
+                <button onClick={() => handleDelete(c.id, c.name)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 cursor-pointer">
+                  <Trash2 size={13} aria-hidden="true" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
