@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tag, RotateCcw, Power, Trash2, Plus, Loader2 } from "lucide-react";
+import { Tag, RotateCcw, Power, Trash2, Plus, Loader2, AlertTriangle, X } from "lucide-react";
 
 type Promo = {
   id: string;
@@ -28,6 +28,8 @@ export default function PromoManager() {
   const [form, setForm] = useState({ code: randomCode(), discount: "15", maxUsage: "" });
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Promo | null>(null);
 
   const fetchPromos = async () => {
     setLoading(true);
@@ -53,7 +55,8 @@ export default function PromoManager() {
       fetchPromos();
     } else {
       const err = await res.json();
-      alert(err.error ?? "Failed to create code.");
+      setToast(err.error ?? "Failed to create code.");
+      setTimeout(() => setToast(null), 3000);
     }
   };
 
@@ -66,9 +69,9 @@ export default function PromoManager() {
     fetchPromos();
   };
 
-  const handleDelete = async (id: string, code: string) => {
-    if (!confirm(`Delete promo code ${code}?`)) return;
-    await fetch(`/api/admin/promos/${id}`, { method: "DELETE" });
+  const handleDelete = async (promo: Promo) => {
+    await fetch(`/api/admin/promos/${promo.id}`, { method: "DELETE" });
+    setConfirmDelete(null);
     fetchPromos();
   };
 
@@ -190,7 +193,7 @@ export default function PromoManager() {
                   {p.isActive ? "Active" : "Paused"}
                 </button>
                 <button
-                  onClick={() => handleDelete(p.id, p.code)}
+                  onClick={() => setConfirmDelete(p)}
                   className="flex items-center gap-1.5 text-xs font-bold text-red-400 hover:text-red-600 transition-colors duration-150 cursor-pointer"
                 >
                   <Trash2 size={13} aria-hidden="true" />
@@ -216,7 +219,7 @@ export default function PromoManager() {
                   {p.isActive ? "Active" : "Paused"}
                 </button>
                 <button
-                  onClick={() => handleDelete(p.id, p.code)}
+                  onClick={() => setConfirmDelete(p)}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 cursor-pointer"
                 >
                   <Trash2 size={13} aria-hidden="true" />
@@ -224,6 +227,49 @@ export default function PromoManager() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Branded Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
+          <div className="flex items-center gap-3 bg-glam-text text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-black/20 max-w-sm">
+            <div className="w-8 h-8 rounded-xl bg-red-500 flex items-center justify-center shrink-0">
+              <AlertTriangle size={14} aria-hidden="true" />
+            </div>
+            <p className="text-sm font-medium flex-1">{toast}</p>
+            <button onClick={() => setToast(null)} className="text-white/50 hover:text-white cursor-pointer">
+              <X size={14} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Branded Confirm Delete Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDelete(null); }}>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                <Trash2 size={20} className="text-red-500" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-serif font-bold text-glam-text">Delete Promo Code</p>
+                <p className="text-sm text-muted mt-0.5">Are you sure you want to delete <strong className="text-glam-text">{confirmDelete.code}</strong>?</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)}
+                className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">
+                Cancel
+              </button>
+              <button onClick={() => handleDelete(confirmDelete)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all cursor-pointer min-h-[48px]">
+                <Trash2 size={14} aria-hidden="true" /> Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
