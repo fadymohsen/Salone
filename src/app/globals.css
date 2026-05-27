@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand colors */
+  --color-background: #FFFDF9;
+  --color-surface: #FFFFFF;
+  --color-primary: #E11D48;
+  --color-secondary: #F43F5E;
+  --color-pastel-pink: #FFF1F2;
+  --color-glam-text: #3F3F46;
+  --color-muted: #71717A;
+  --color-border: #FFE4E8;
+
+  /* Font families — variables injected by next/font */
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
+
+  /* Spacing & radius */
+  --radius-3xl: 1.75rem;
+  --radius-4xl: 2rem;
+}
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FFFDF9;
+  color: #3F3F46;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Focus ring ── */
+:focus-visible {
+  outline: 2px solid #E11D48;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #FFFDF9; }
+::-webkit-scrollbar-thumb { background: #FBCFE8; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #E11D48; }
+
+/* ── Selection ── */
+::selection { background: #FFE4E8; color: #E11D48; }

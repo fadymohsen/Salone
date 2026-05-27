@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String              @id @default(uuid())
+  email        String              @unique
+  passwordHash String
+  name         String
+  phone        String?
+  points       Int                 @default(0)
+  createdAt    DateTime            @default(now())
+  bookings     Booking[]
+  pointsTxns   PointsTransaction[]
+  resetTokens  PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PointsTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  points      Int
+  description String
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id            String   @id @default(uuid())
+  userId        String?
+  clientName    String
+  clientPhone   String
+  clientEmail   String?
+  serviceType   String
+  bookingDate   String
+  bookingTime   String
+  status        String   @default("confirmed")
+  notes         String?
+  promoCode     String?
+  paymentMethod String?
+  paymentStatus String   @default("pending")
+  amount        Int?
+  pointsEarned  Int?
+  createdAt     DateTime @default(now())
+  user          User?    @relation(fields: [userId], references: [id])
+}
+
+model Service {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  description   String?
+  price         Int
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  popular       Boolean  @default(false)
+  iconName      String?
+  availableDays String   @default("1,2,3,4,5,6")
+  timeSlots     String   @default("11:00,12:30,14:00,15:30,17:00,18:30,20:00")
+  createdAt     DateTime @default(now())
+}
+
+model GalleryImage {
+  id        String   @id @default(uuid())
+  title     String
+  imageUrl  String
+  serviceId String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model PromoCode {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  discount   Int
+  isActive   Boolean  @default(true)
+  usageCount Int      @default(0)
+  maxUsage   Int?
+  autoGen    Boolean  @default(false)
+  userId     String?
+  createdAt  DateTime @default(now())
+}
+
+model PointsConfig {
+  id               String @id @default(cuid())
+  pointsPerBooking Int    @default(10)
+  pointsThreshold  Int    @default(100)
+  couponDiscount   Int    @default(15)
+}
