@@ -236,6 +236,9 @@
   },
   "dashboard": {
     "yourPoints": "Your Points",
+    "totalEarned": "Total Earned",
+    "redeemed": "Redeemed",
+    "remaining": "Remaining",
     "earnPoints": "Earn points on completed bookings",
     "bookNew": "Book a New Appointment",
     "rewards": "Rewards",

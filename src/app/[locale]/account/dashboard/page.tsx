@@ -15,7 +15,8 @@ type Booking = {
   status: string; paymentStatus: string; pointsEarned: number | null;
 };
 type Coupon = { id: string; code: string; discount: number; usageCount: number; maxUsage: number | null };
-type CouponsData = { coupons: Coupon[]; threshold: number; pointsPerBooking: number; couponDiscount: number };
+type CouponsData = { coupons: Coupon[]; threshold: number; pointsPerBooking: number; couponDiscount: number; totalEarned: number; totalRedeemed: number };
+type RedeemService = { id: string; name: string; nameAr: string | null; pointsPrice: number; availableDays: string; timeSlots: string };
 
 const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-blue-50 text-blue-600 border-blue-100",
@@ -80,6 +81,11 @@ export default function DashboardPage() {
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("11:00");
   const [saving, setSaving] = useState(false);
+  const [redeemServices, setRedeemServices] = useState<RedeemService[]>([]);
+  const [redeemId, setRedeemId] = useState<string | null>(null);
+  const [redeemDate, setRedeemDate] = useState("");
+  const [redeemTime, setRedeemTime] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
   const TIMES = ["11:00","12:30","14:00","15:30","17:00","18:30","20:00"];
 
   useEffect(() => {
@@ -87,11 +93,15 @@ export default function DashboardPage() {
       fetch("/api/auth/me").then(r => r.json()),
       fetch("/api/user/bookings").then(r => r.json()),
       fetch("/api/user/coupons").then(r => r.json()),
-    ]).then(([meData, bData, cData]) => {
+      fetch("/api/services").then(r => r.json()),
+    ]).then(([meData, bData, cData, svcData]) => {
       if (!meData.user) { window.location.href = l("/account/login"); return; }
       setUser(meData.user);
       setBookings(Array.isArray(bData) ? bData : []);
       if (cData && !cData.error) setCouponsData(cData);
+      if (Array.isArray(svcData)) {
+        setRedeemServices(svcData.filter((s: RedeemService & { pointsPrice: number | null }) => s.pointsPrice != null && s.pointsPrice > 0));
+      }
     }).catch(() => { window.location.href = l("/account/login"); })
       .finally(() => setLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -118,6 +128,47 @@ export default function DashboardPage() {
       alert(t.dashboard.couldNotReschedule);
     }
   };
+
+  const handleRedeem = async () => {
+    if (!redeemId || !redeemDate || !redeemTime) return;
+    setRedeeming(true);
+    try {
+      const res = await fetch("/api/user/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId: redeemId, bookingDate: redeemDate, bookingTime: redeemTime }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setRedeemId(null);
+        setRedeemDate("");
+        setRedeemTime("");
+        // Refresh data
+        const [meData, bData, cData] = await Promise.all([
+          fetch("/api/auth/me").then(r => r.json()),
+          fetch("/api/user/bookings").then(r => r.json()),
+          fetch("/api/user/coupons").then(r => r.json()),
+        ]);
+        if (meData.user) setUser(meData.user);
+        setBookings(Array.isArray(bData) ? bData : []);
+        if (cData && !cData.error) setCouponsData(cData);
+      } else {
+        alert(data.error || (locale === "ar" ? "حدث خطأ" : "Something went wrong"));
+      }
+    } catch {
+      alert(locale === "ar" ? "خطأ في الاتصال" : "Connection error");
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
+  const selectedRedeemService = redeemServices.find(s => s.id === redeemId);
+  const redeemAvailableDays = selectedRedeemService?.availableDays
+    ? selectedRedeemService.availableDays.split(",").map(d => parseInt(d.trim(), 10)).filter(n => !isNaN(n))
+    : [];
+  const redeemAvailableTimes = selectedRedeemService?.timeSlots
+    ? selectedRedeemService.timeSlots.split(",").map(t => t.trim()).filter(Boolean)
+    : TIMES;
 
   if (loading) return (
     <div className="min-h-[calc(100dvh-56px)] flex items-center justify-center">
@@ -152,16 +203,24 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div className="mt-5 bg-gradient-to-r from-primary/8 to-secondary/5 rounded-2xl px-5 py-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-0.5">{t.dashboard.yourPoints}</p>
-              <p className="font-serif text-3xl font-bold text-glam-text">{user.points}</p>
-              <p className="text-xs text-muted mt-0.5">{t.dashboard.earnPoints}</p>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <div className="bg-gradient-to-br from-primary/8 to-primary/3 rounded-2xl px-4 py-3.5 text-center">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">{t.dashboard.totalEarned}</p>
+              <p className="font-serif text-2xl font-bold text-glam-text">{couponsData?.totalEarned ?? 0}</p>
+              <p className="text-xs text-muted mt-0.5">pts</p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Star size={22} className="text-primary" strokeWidth={1.5} aria-hidden="true" />
+            <div className="bg-gradient-to-br from-secondary/8 to-secondary/3 rounded-2xl px-4 py-3.5 text-center">
+              <p className="text-xs font-bold text-secondary uppercase tracking-wide mb-1">{t.dashboard.redeemed}</p>
+              <p className="font-serif text-2xl font-bold text-glam-text">{couponsData?.totalRedeemed ?? 0}</p>
+              <p className="text-xs text-muted mt-0.5">pts</p>
+            </div>
+            <div className="bg-gradient-to-br from-green-500/8 to-green-500/3 rounded-2xl px-4 py-3.5 text-center">
+              <p className="text-xs font-bold text-green-600 uppercase tracking-wide mb-1">{t.dashboard.remaining}</p>
+              <p className="font-serif text-2xl font-bold text-glam-text">{user.points}</p>
+              <p className="text-xs text-muted mt-0.5">pts</p>
             </div>
           </div>
+          <p className="text-xs text-muted mt-3 text-center">{t.dashboard.earnPoints}</p>
         </div>
 
         <Link href={l("/book")}
@@ -208,6 +267,73 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Redeem with Points */}
+        {redeemServices.length > 0 && user && (
+          <div className="bg-white rounded-3xl p-6 border border-border shadow-sm shadow-primary/5 space-y-4">
+            <h2 className="font-serif text-base font-bold text-glam-text flex items-center gap-2">
+              <Star size={15} className="text-primary" aria-hidden="true" />
+              {locale === "ar" ? "استبدال النقاط بخدمة" : "Redeem Points for a Service"}
+            </h2>
+            <p className="text-xs text-muted">{locale === "ar" ? "اختاري خدمة للحصول عليها مجاناً باستخدام نقاطك" : "Choose a service to get for free using your points"}</p>
+
+            <div className="space-y-2">
+              {redeemServices.map((s) => {
+                const canAfford = user.points >= s.pointsPrice;
+                const isSelected = redeemId === s.id;
+                return (
+                  <button key={s.id} type="button"
+                    onClick={() => { if (canAfford) { setRedeemId(isSelected ? null : s.id); setRedeemDate(""); setRedeemTime(""); } }}
+                    disabled={!canAfford}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border text-start transition-all duration-150 min-h-[52px] ${
+                      isSelected ? "border-primary ring-2 ring-primary/15 bg-primary/5" :
+                      canAfford ? "border-border bg-background hover:border-primary/40 cursor-pointer" :
+                      "border-border bg-background opacity-50 cursor-not-allowed"
+                    }`}>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold truncate ${isSelected ? "text-primary" : "text-glam-text"}`}>
+                        {locale === "ar" ? (s.nameAr || s.name) : s.name}
+                      </p>
+                      {!canAfford && (
+                        <p className="text-xs text-red-400 mt-0.5">{locale === "ar" ? "نقاط غير كافية" : "Not enough points"}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-sm font-bold tabular-nums ${isSelected ? "text-primary" : canAfford ? "text-glam-text/70" : "text-muted"}`}>
+                        {s.pointsPrice} pts
+                      </span>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? "border-primary bg-primary" : "border-border"}`}>
+                        {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {redeemId && selectedRedeemService && (
+              <div className="border-t border-border pt-4 space-y-3">
+                <p className="text-xs font-bold text-glam-text">{locale === "ar" ? "اختاري التاريخ والوقت:" : "Choose date & time:"}</p>
+                <MiniCalendar value={redeemDate} onChange={setRedeemDate} months={t.booking.months} dayNames={t.booking.dayNames} />
+                <div className="grid grid-cols-4 gap-1.5">
+                  {redeemAvailableTimes.map(time => (
+                    <button key={time} type="button" onClick={() => setRedeemTime(time)}
+                      className={`py-2 text-xs font-bold rounded-xl border transition-all duration-150 cursor-pointer min-h-[40px] ${redeemTime === time ? "bg-primary text-white border-primary" : "border-border text-glam-text hover:border-primary/50 hover:text-primary"}`}>
+                      {time}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={handleRedeem} disabled={!redeemDate || !redeemTime || redeeming}
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 rounded-2xl shadow-md shadow-primary/25 hover:bg-secondary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]">
+                  {redeeming
+                    ? <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {locale === "ar" ? "جاري الاستبدال..." : "Redeeming..."}</>
+                    : <><Star size={14} aria-hidden="true" /> {locale === "ar" ? `استبدال ${selectedRedeemService.pointsPrice} نقطة` : `Redeem ${selectedRedeemService.pointsPrice} Points`}</>
+                  }
+                </button>
               </div>
             )}
           </div>

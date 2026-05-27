@@ -236,6 +236,9 @@
   },
   "dashboard": {
     "yourPoints": "نقاطك",
+    "totalEarned": "إجمالي المكتسب",
+    "redeemed": "المستبدل",
+    "remaining": "المتبقي",
     "earnPoints": "اكسبي نقاط على الحجوزات المكتملة",
     "bookNew": "احجزي موعد جديد",
     "rewards": "المكافآت",

@@ -17,6 +17,7 @@ export async function GET() {
       availableDays: true,
       timeSlots: true,
       categoryId: true,
+      pointsPrice: true,
       category: { select: { id: true, name: true, nameAr: true } },
     },
   });

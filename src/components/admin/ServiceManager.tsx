@@ -22,6 +22,7 @@ type Service = {
   isActive: boolean;
   popular: boolean;
   featured: boolean;
+  pointsPrice: number | null;
   iconName: string | null;
   sortOrder: number;
   availableDays: string;
@@ -38,6 +39,7 @@ type FormState = {
   isActive: boolean;
   popular: boolean;
   featured: boolean;
+  pointsPrice: string;
   iconName: string;
   categoryId: string;
   availableDays: number[];
@@ -58,6 +60,7 @@ const EMPTY_FORM: FormState = {
   isActive: true,
   popular: false,
   featured: false,
+  pointsPrice: "",
   iconName: "",
   categoryId: "",
   availableDays: DEFAULT_DAYS,
@@ -124,6 +127,7 @@ function formFromService(s: Service): FormState {
     isActive: s.isActive,
     popular: s.popular,
     featured: s.featured,
+    pointsPrice: s.pointsPrice != null ? String(s.pointsPrice) : "",
     iconName: s.iconName ?? "",
     categoryId: s.categoryId ?? "",
     availableDays: s.availableDays ? parseDays(s.availableDays) : DEFAULT_DAYS,
@@ -199,6 +203,7 @@ export default function ServiceManager() {
       isActive: form.isActive,
       popular: form.popular,
       featured: form.featured,
+      pointsPrice: form.pointsPrice ? Number(form.pointsPrice) : null,
       iconName: form.iconName,
       categoryId: form.categoryId || null,
       availableDays: form.availableDays.slice().sort((a, b) => a - b).join(","),
@@ -536,6 +541,21 @@ export default function ServiceManager() {
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
                   placeholder="150"
+                  className={INPUT}
+                />
+              </div>
+
+              {/* Points Price (optional) */}
+              <div>
+                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
+                  Points Price <span className="text-muted font-normal">(optional — leave empty to disable redemption)</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.pointsPrice}
+                  onChange={(e) => setForm({ ...form, pointsPrice: e.target.value })}
+                  placeholder="e.g. 500"
                   className={INPUT}
                 />
               </div>

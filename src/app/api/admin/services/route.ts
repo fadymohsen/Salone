@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   if (!(await isAdminAuthenticated()))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, nameAr, description, descriptionAr, price, popular, iconName, categoryId, availableDays, timeSlots } = await request.json();
+  const { name, nameAr, description, descriptionAr, price, popular, iconName, categoryId, pointsPrice, availableDays, timeSlots } = await request.json();
 
   if (!name || price == null)
     return NextResponse.json({ error: "Name and price are required." }, { status: 400 });
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         price: Number(price),
         popular: Boolean(popular),
         featured: false,
+        pointsPrice: pointsPrice != null ? Number(pointsPrice) : null,
         iconName: iconName || null,
         categoryId: categoryId || null,
         sortOrder: count,
