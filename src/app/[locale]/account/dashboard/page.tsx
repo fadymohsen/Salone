@@ -16,7 +16,7 @@ type Booking = {
 };
 type Coupon = { id: string; code: string; discount: number; usageCount: number; maxUsage: number | null };
 type CouponsData = { coupons: Coupon[]; threshold: number; pointsPerBooking: number; couponDiscount: number; totalEarned: number; totalRedeemed: number };
-type RedeemService = { id: string; name: string; nameAr: string | null; price: number; pointsPrice: number; rewardDiscount: number; availableDays: string; timeSlots: string };
+type RedeemService = { id: string; name: string; nameAr: string | null; price: number; pointsPrice: number; rewardDiscount: number; duration: number; availableDays: string; timeSlots: string };
 
 const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-blue-50 text-blue-600 border-blue-100",
@@ -166,9 +166,25 @@ export default function DashboardPage() {
   const redeemAvailableDays = selectedRedeemService?.availableDays
     ? selectedRedeemService.availableDays.split(",").map(d => parseInt(d.trim(), 10)).filter(n => !isNaN(n))
     : [];
-  const redeemAvailableTimes = selectedRedeemService?.timeSlots
-    ? selectedRedeemService.timeSlots.split(",").map(t => t.trim()).filter(Boolean)
-    : TIMES;
+  const redeemAvailableTimes: string[] = (() => {
+    if (!selectedRedeemService?.timeSlots || !redeemDate) return TIMES;
+    const dow = new Date(redeemDate + "T00:00:00").getDay();
+    const dur = selectedRedeemService.duration || 60;
+    try {
+      const parsed = JSON.parse(selectedRedeemService.timeSlots);
+      if (parsed.ranges?.[String(dow)]) {
+        const r = parsed.ranges[String(dow)];
+        const [sh, sm] = r.start.split(":").map(Number);
+        const [eh, em] = r.end.split(":").map(Number);
+        const s = sh * 60 + sm, e = eh * 60 + em;
+        const slots: string[] = [];
+        for (let m = s; m + dur <= e; m += dur) slots.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+        return slots.length > 0 ? slots : TIMES;
+      }
+      if (parsed[String(dow)]) return parsed[String(dow)];
+    } catch { /* legacy */ }
+    return selectedRedeemService.timeSlots.split(",").map(t => t.trim()).filter(Boolean);
+  })();
 
   if (loading) return (
     <div className="min-h-[calc(100dvh-56px)] flex items-center justify-center">

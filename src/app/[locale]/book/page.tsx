@@ -16,7 +16,19 @@ const INPUT_CLASS =
 const DEFAULT_TIMES = ["11:00","12:30","14:00","15:30","17:00","18:30","20:00"];
 
 type CategoryOption = { id: string; name: string; nameAr: string | null };
-type ServiceOption = { id: string; name: string; nameAr: string | null; price: number; availableDays: string; timeSlots: string; categoryId: string | null; category: CategoryOption | null };
+type ServiceOption = { id: string; name: string; nameAr: string | null; price: number; duration: number; availableDays: string; timeSlots: string; categoryId: string | null; category: CategoryOption | null };
+
+function genSlots(start: string, end: string, dur: number): string[] {
+  if (!start || !end || dur <= 0) return [];
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const s = sh * 60 + sm, e = eh * 60 + em;
+  const slots: string[] = [];
+  for (let m = s; m + dur <= e; m += dur) {
+    slots.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  }
+  return slots;
+}
 
 function CalendarPicker({
   value, onChange, availableDays = [], months, dayNames,
@@ -151,12 +163,21 @@ function BookingFormContent() {
     if (!matched) return;
     const parsedDays = matched.availableDays ? matched.availableDays.split(",").map(d => parseInt(d.trim(), 10)).filter(n => !isNaN(n)) : [];
     setAvailableDays(parsedDays);
+    const dur = matched.duration || 60;
 
-    // Parse per-day time slots (JSON) or legacy CSV
+    // Parse time ranges or legacy formats
     let dsMap: Record<string, string[]> = {};
     try {
       const parsed = JSON.parse(matched.timeSlots);
-      if (typeof parsed === "object" && !Array.isArray(parsed)) dsMap = parsed;
+      if (parsed.ranges && typeof parsed.ranges === "object") {
+        // New range format: generate slots from ranges + duration
+        for (const [day, range] of Object.entries(parsed.ranges as Record<string, { start: string; end: string }>)) {
+          dsMap[day] = genSlots(range.start, range.end, dur);
+        }
+      } else if (typeof parsed === "object" && !Array.isArray(parsed)) {
+        // Legacy per-day slots format
+        dsMap = parsed;
+      }
     } catch { /* legacy CSV */ }
     if (Object.keys(dsMap).length === 0) {
       const times = matched.timeSlots ? matched.timeSlots.split(",").map(t => t.trim()).filter(Boolean) : DEFAULT_TIMES;
@@ -164,16 +185,14 @@ function BookingFormContent() {
     }
     setDaySlotMap(dsMap);
 
-    // Set times based on currently selected date's day
     if (form.bookingDate) {
       const dow = new Date(form.bookingDate + "T00:00:00").getDay();
-      const dayTimes = dsMap[String(dow)] ?? DEFAULT_TIMES;
+      const dayTimes = dsMap[String(dow)] ?? [];
       setAvailableTimes(dayTimes);
       setForm(prev => ({ ...prev, bookingTime: dayTimes.includes(prev.bookingTime) ? prev.bookingTime : "" }));
     } else {
-      // Show all unique times as fallback
       const allTimes = [...new Set(Object.values(dsMap).flat())].sort();
-      setAvailableTimes(allTimes.length > 0 ? allTimes : DEFAULT_TIMES);
+      setAvailableTimes(allTimes.length > 0 ? allTimes : []);
     }
   }, [form.serviceType, services]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -181,7 +200,7 @@ function BookingFormContent() {
   useEffect(() => {
     if (!form.bookingDate || Object.keys(daySlotMap).length === 0) return;
     const dow = new Date(form.bookingDate + "T00:00:00").getDay();
-    const dayTimes = daySlotMap[String(dow)] ?? DEFAULT_TIMES;
+    const dayTimes = daySlotMap[String(dow)] ?? [];
     setAvailableTimes(dayTimes);
     setForm(prev => ({ ...prev, bookingTime: dayTimes.includes(prev.bookingTime) ? prev.bookingTime : "" }));
   }, [form.bookingDate, daySlotMap]); // eslint-disable-line react-hooks/exhaustive-deps

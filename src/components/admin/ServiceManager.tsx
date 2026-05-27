@@ -44,16 +44,12 @@ type FormState = {
   duration: number;
   iconName: string;
   categoryId: string;
-  daySlots: Record<string, string[]>;
+  dayRanges: Record<string, { start: string; end: string }>;
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const DEFAULT_TIMES = ["11:00", "12:30", "14:00", "15:30", "17:00", "18:30", "20:00"];
-const DEFAULT_DAY_SLOTS: Record<string, string[]> = {
-  "1": [...DEFAULT_TIMES], "2": [...DEFAULT_TIMES], "3": [...DEFAULT_TIMES],
-  "4": [...DEFAULT_TIMES], "5": [...DEFAULT_TIMES], "6": [...DEFAULT_TIMES],
-};
 
 const EMPTY_FORM: FormState = {
   name: "",
@@ -68,8 +64,23 @@ const EMPTY_FORM: FormState = {
   duration: 0,
   iconName: "",
   categoryId: "",
-  daySlots: {},
+  dayRanges: {},
 };
+
+function generateSlots(start: string, end: string, durationMin: number): string[] {
+  if (!start || !end || durationMin <= 0) return [];
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const startMins = sh * 60 + sm;
+  const endMins = eh * 60 + em;
+  const slots: string[] = [];
+  for (let m = startMins; m + durationMin <= endMins; m += durationMin) {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    slots.push(`${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`);
+  }
+  return slots;
+}
 
 const INPUT =
   "w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150";
@@ -121,17 +132,30 @@ function sortTimes(times: string[]): string[] {
   });
 }
 
-function parseDaySlots(availableDays: string, timeSlots: string): Record<string, string[]> {
-  // Try JSON format first (new format)
+function parseDayRanges(availableDays: string, timeSlots: string): Record<string, { start: string; end: string }> {
+  // Try JSON range format: {"ranges":{"0":{"start":"10:00","end":"16:00"},...}}
   try {
     const parsed = JSON.parse(timeSlots);
-    if (typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
-  } catch { /* not JSON, fall back to CSV */ }
-  // Legacy CSV format: same times for all days
+    if (parsed.ranges && typeof parsed.ranges === "object") return parsed.ranges;
+    // Legacy per-day slots format: {"0":["10:00","11:00",...]} — infer range
+    if (typeof parsed === "object" && !Array.isArray(parsed)) {
+      const result: Record<string, { start: string; end: string }> = {};
+      for (const [day, slots] of Object.entries(parsed)) {
+        const arr = slots as string[];
+        if (arr.length > 0) {
+          result[day] = { start: arr[0], end: arr[arr.length - 1] };
+        }
+      }
+      return result;
+    }
+  } catch { /* not JSON */ }
+  // Legacy CSV format
   const days = parseDays(availableDays);
   const times = parseTimes(timeSlots);
-  const result: Record<string, string[]> = {};
-  for (const d of days) result[String(d)] = [...times];
+  const result: Record<string, { start: string; end: string }> = {};
+  if (times.length > 0) {
+    for (const d of days) result[String(d)] = { start: times[0], end: times[times.length - 1] };
+  }
   return result;
 }
 
@@ -149,7 +173,7 @@ function formFromService(s: Service): FormState {
     duration: s.duration,
     iconName: s.iconName ?? "",
     categoryId: s.categoryId ?? "",
-    daySlots: (s.availableDays && s.timeSlots) ? parseDaySlots(s.availableDays, s.timeSlots) : { ...DEFAULT_DAY_SLOTS },
+    dayRanges: (s.availableDays && s.timeSlots) ? parseDayRanges(s.availableDays, s.timeSlots) : {},
   };
 }
 
@@ -163,7 +187,6 @@ export default function ServiceManager() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [newTimes, setNewTimes] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{ msg: string; icon: "home" | "star" } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Service | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -196,14 +219,14 @@ export default function ServiceManager() {
   const openCreate = () => {
     setForm(EMPTY_FORM);
     setEditId(null);
-    setNewTimes({});
+
     setModal("create");
   };
 
   const openEdit = (s: Service) => {
     setForm(formFromService(s));
     setEditId(s.id);
-    setNewTimes({});
+
     setModal("edit");
   };
 
@@ -219,7 +242,7 @@ export default function ServiceManager() {
     if (!form.price && form.price !== 0) missing.push("Price");
     if (!form.duration) missing.push("Duration");
     if (!form.categoryId) missing.push("Category");
-    if (Object.keys(form.daySlots).length === 0) missing.push("Available Days & Time Slots");
+    if (Object.keys(form.dayRanges).length === 0) missing.push("Available Days & Time Ranges");
     if (missing.length > 0) { setErrors(missing); return; }
     setErrors([]);
     setSaving(true);
@@ -238,12 +261,8 @@ export default function ServiceManager() {
       duration: form.duration,
       iconName: form.iconName,
       categoryId: form.categoryId || null,
-      availableDays: Object.keys(form.daySlots).sort((a, b) => Number(a) - Number(b)).join(","),
-      timeSlots: JSON.stringify(
-        Object.fromEntries(
-          Object.entries(form.daySlots).map(([day, times]) => [day, sortTimes(times)])
-        )
-      ),
+      availableDays: Object.keys(form.dayRanges).sort((a, b) => Number(a) - Number(b)).join(","),
+      timeSlots: JSON.stringify({ ranges: form.dayRanges }),
     };
     try {
       const res = await fetch(url, {
@@ -330,26 +349,16 @@ export default function ServiceManager() {
   const toggleDay = (day: number) => {
     setForm((prev) => {
       const key = String(day);
-      const next = { ...prev.daySlots };
-      if (next[key]) { delete next[key]; } else { next[key] = [...DEFAULT_TIMES]; }
-      return { ...prev, daySlots: next };
+      const next = { ...prev.dayRanges };
+      if (next[key]) { delete next[key]; } else { next[key] = { start: "10:00", end: "16:00" }; }
+      return { ...prev, dayRanges: next };
     });
   };
 
-  const addTimeForDay = (day: string) => {
-    const t = (newTimes[day] ?? "").trim();
-    if (!t || (form.daySlots[day] ?? []).includes(t)) return;
+  const updateDayRange = (day: string, field: "start" | "end", value: string) => {
     setForm((prev) => ({
       ...prev,
-      daySlots: { ...prev.daySlots, [day]: sortTimes([...(prev.daySlots[day] ?? []), t]) },
-    }));
-    setNewTimes((prev) => ({ ...prev, [day]: "" }));
-  };
-
-  const removeTimeFromDay = (day: string, t: string) => {
-    setForm((prev) => ({
-      ...prev,
-      daySlots: { ...prev.daySlots, [day]: (prev.daySlots[day] ?? []).filter((x) => x !== t) },
+      dayRanges: { ...prev.dayRanges, [day]: { ...prev.dayRanges[day], [field]: value } },
     }));
   };
 
@@ -704,15 +713,15 @@ export default function ServiceManager() {
                 </label>
               </div>
 
-              {/* ── Schedule: Days & Time Slots ─────────────────────── */}
+              {/* ── Schedule: Days & Time Ranges ──────────────────── */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-2">
-                  Available Days & Time Slots
+                  Business Hours *
                 </label>
-                <p className="text-xs text-muted mb-3">Select days, then set time slots for each day.</p>
+                <p className="text-xs text-muted mb-3">Select days and set working hours. Slots are auto-generated from the duration.</p>
                 <div className="flex gap-1.5 flex-wrap mb-4">
                   {DAY_LABELS.map((label, dayIndex) => {
-                    const active = !!form.daySlots[String(dayIndex)];
+                    const active = !!form.dayRanges[String(dayIndex)];
                     return (
                       <button
                         key={dayIndex}
@@ -730,37 +739,39 @@ export default function ServiceManager() {
                   })}
                 </div>
 
-                {/* Per-day time slots */}
+                {/* Per-day time ranges */}
                 <div className="space-y-3">
                   {DAY_LABELS.map((label, dayIndex) => {
                     const key = String(dayIndex);
-                    const slots = form.daySlots[key];
-                    if (!slots) return null;
+                    const range = form.dayRanges[key];
+                    if (!range) return null;
+                    const slots = generateSlots(range.start, range.end, form.duration || 60);
                     return (
                       <div key={dayIndex} className="bg-background border border-border rounded-2xl p-4">
-                        <p className="text-xs font-bold text-glam-text mb-2">{label}</p>
-                        {slots.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-2.5">
+                        <p className="text-xs font-bold text-glam-text mb-3">{label}</p>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                          <div>
+                            <label className="block text-xs text-muted mb-1">From</label>
+                            <input type="time" value={range.start}
+                              onChange={(e) => updateDayRange(key, "start", e.target.value)}
+                              className={INPUT} />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-muted mb-1">To</label>
+                            <input type="time" value={range.end}
+                              onChange={(e) => updateDayRange(key, "end", e.target.value)}
+                              className={INPUT} />
+                          </div>
+                        </div>
+                        {slots.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
                             {slots.map((t) => (
-                              <span key={t} className="inline-flex items-center gap-1 bg-pastel-pink text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
-                                {t}
-                                <button type="button" onClick={() => removeTimeFromDay(key, t)} aria-label={`Remove ${t}`}
-                                  className="text-primary/50 hover:text-primary transition-colors cursor-pointer">
-                                  <X size={11} aria-hidden="true" />
-                                </button>
-                              </span>
+                              <span key={t} className="bg-pastel-pink text-primary text-xs font-semibold px-2.5 py-1 rounded-full">{t}</span>
                             ))}
                           </div>
+                        ) : (
+                          <p className="text-xs text-red-400">No slots fit in this range{form.duration ? ` with ${form.duration} min duration` : ". Select a duration first"}.</p>
                         )}
-                        <div className="flex gap-2">
-                          <input type="time" value={newTimes[key] ?? ""}
-                            onChange={(e) => setNewTimes((prev) => ({ ...prev, [key]: e.target.value }))}
-                            className={`${INPUT} flex-1`} />
-                          <button type="button" onClick={() => addTimeForDay(key)} disabled={!(newTimes[key] ?? "").trim()}
-                            className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-40 cursor-pointer">
-                            Add
-                          </button>
-                        </div>
                       </div>
                     );
                   })}
