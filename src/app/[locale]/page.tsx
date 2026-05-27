@@ -370,7 +370,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
       <footer className="bg-[#2A2A30] text-white">
         <div className="h-1 bg-gradient-to-r from-primary via-secondary to-primary/40" />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-10 border-b border-white/8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 pb-10 border-b border-white/8">
             <div className="sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 mb-3">
                 <span className="font-serif text-2xl font-bold text-primary">{t.common.brand}</span>
@@ -386,17 +386,6 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
                   @glowbook.eg
                 </a>
               </div>
-            </div>
-
-            <div>
-              <p className="text-xs font-bold text-white/35 uppercase tracking-[0.12em] mb-5">{t.footer.servicesTitle}</p>
-              <ul className="space-y-2.5">
-                {(services ?? []).map((s) => (
-                  <li key={s.name}>
-                    <Link href={`${l("/book")}?service=${encodeURIComponent(s.name)}`} className="text-sm text-white/55 hover:text-primary transition-colors duration-150 cursor-pointer">{s.name}</Link>
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div>
