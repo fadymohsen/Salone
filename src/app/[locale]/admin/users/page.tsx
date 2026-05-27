@@ -81,28 +81,26 @@ export default function UsersPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
           {/* Desktop header */}
-          <div className="hidden md:grid grid-cols-[auto_1fr_auto_80px_80px_auto] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
             <span className="w-9" />
             <span>{u.client}</span>
-            <span>{u.contact}</span>
-            <span>{u.pointsCol}</span>
+            <span className="text-center">{u.contact}</span>
+            <span className="text-center">{u.pointsCol}</span>
             <span>{u.bookingsCol}</span>
-            <span>Actions</span>
           </div>
 
           {filtered.map((usr) => (
             <div key={usr.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100">
               {/* Desktop row */}
-              <div className="hidden md:grid grid-cols-[auto_1fr_auto_80px_80px_auto] gap-3 px-5 py-3.5 items-center">
+              <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px] gap-3 px-5 py-3.5 items-center">
                 <button onClick={() => setSelectedUser(usr)}
                   className="w-9 h-9 rounded-full bg-pastel-pink flex items-center justify-center text-primary font-bold text-sm shrink-0 cursor-pointer hover:bg-primary hover:text-white transition-all duration-150">
                   {usr.name[0].toUpperCase()}
                 </button>
                 <button onClick={() => setSelectedUser(usr)} className="min-w-0 text-start cursor-pointer">
                   <p className="font-bold text-sm text-glam-text truncate hover:text-primary transition-colors">{usr.name}</p>
-                  <p className="text-xs text-muted truncate">{usr.email}</p>
                 </button>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-center gap-1.5">
                   {usr.phone && (
                     <a href={waLink(usr.phone)} target="_blank" rel="noopener noreferrer"
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-all duration-150 cursor-pointer" title="WhatsApp">
@@ -114,7 +112,7 @@ export default function UsersPage() {
                     <Mail size={14} aria-hidden="true" />
                   </a>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-center gap-1">
                   <Star size={12} className="text-primary" aria-hidden="true" />
                   <span className="font-bold text-sm text-glam-text tabular-nums">{usr.points}</span>
                 </div>
@@ -122,10 +120,6 @@ export default function UsersPage() {
                   className="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors duration-150">
                   <CalendarDays size={12} className="text-muted" aria-hidden="true" />
                   <span className="text-sm text-muted tabular-nums font-bold hover:text-primary">{usr._count.bookings}</span>
-                </button>
-                <button onClick={() => setSelectedUser(usr)}
-                  className="text-xs font-bold text-primary hover:text-secondary transition-colors cursor-pointer">
-                  View
                 </button>
               </div>
 
