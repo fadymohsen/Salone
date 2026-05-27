@@ -119,34 +119,45 @@ export default function OrdersManager() {
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex flex-wrap gap-2 items-center">
-        {/* Search */}
-        <div className="relative flex-1 min-w-48">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" aria-hidden="true" />
-          <input
-            type="text"
-            placeholder="Search name, phone, email…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150"
-          />
-        </div>
+      {/* New Booking button — top right */}
+      <div className="flex justify-end -mt-12">
+        <button
+          onClick={openCreate}
+          className="flex items-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]"
+        >
+          <Plus size={15} aria-hidden="true" />
+          New Booking
+        </button>
+      </div>
 
-        {/* Filters */}
+      {/* Search — full width row */}
+      <div className="relative">
+        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" aria-hidden="true" />
+        <input
+          type="text"
+          placeholder="Search name, phone, email…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full bg-white border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150"
+        />
+      </div>
+
+      {/* Filters — separate row */}
+      <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 text-muted shrink-0">
           <SlidersHorizontal size={14} aria-hidden="true" />
+          <span className="text-xs font-bold">Filters</span>
         </div>
         <input
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
-          className="bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer"
+          className="flex-1 min-w-[140px] bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer"
         />
         <select
           value={filterService}
           onChange={(e) => setFilterService(e.target.value)}
-          className="bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer"
+          className="flex-1 min-w-[140px] bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer appearance-none"
         >
           <option value="">All Services</option>
           {services.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -154,7 +165,7 @@ export default function OrdersManager() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer"
+          className="flex-1 min-w-[120px] bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer appearance-none"
         >
           <option value="">All Status</option>
           {STATUSES.map((s) => <option key={s} className="capitalize">{s}</option>)}
@@ -162,18 +173,11 @@ export default function OrdersManager() {
         {hasFilters && (
           <button
             onClick={() => { setSearch(""); setFilterDate(""); setFilterService(""); setFilterStatus(""); }}
-            className="flex items-center gap-1 text-xs text-muted hover:text-primary font-bold px-2 py-2 transition-colors duration-150 cursor-pointer"
+            className="flex items-center gap-1 text-xs text-muted hover:text-primary font-bold px-3 py-2.5 rounded-xl border border-border hover:border-primary/40 transition-all duration-150 cursor-pointer"
           >
             <X size={12} aria-hidden="true" /> Clear
           </button>
         )}
-        <button
-          onClick={openCreate}
-          className="ml-auto flex items-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]"
-        >
-          <Plus size={15} aria-hidden="true" />
-          New Booking
-        </button>
       </div>
 
       {/* Results count */}
