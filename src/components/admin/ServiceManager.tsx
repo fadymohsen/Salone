@@ -148,6 +148,7 @@ export default function ServiceManager() {
   const [newTime, setNewTime] = useState("");
   const [toast, setToast] = useState<{ msg: string; icon: "home" | "star" } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Service | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -192,6 +193,15 @@ export default function ServiceManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push("Name (English)");
+    if (!form.nameAr.trim()) missing.push("Name (Arabic)");
+    if (!form.description.trim()) missing.push("Description (English)");
+    if (!form.descriptionAr.trim()) missing.push("Description (Arabic)");
+    if (!form.price && form.price !== 0) missing.push("Price");
+    if (!form.categoryId) missing.push("Category");
+    if (missing.length > 0) { setErrors(missing); return; }
+    setErrors([]);
     setSaving(true);
     const url =
       modal === "edit" ? `/api/admin/services/${editId}` : "/api/admin/services";
@@ -483,32 +493,74 @@ export default function ServiceManager() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Full-screen Service Form */}
       {modal && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-        >
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
-            {/* Modal header */}
-            <div className="px-6 py-5 border-b border-border flex items-center justify-between flex-shrink-0">
-              <h2 className="font-serif font-bold text-glam-text">
-                {modal === "create" ? "New Service" : "Edit Service"}
-              </h2>
+        <div className="fixed inset-0 bg-background z-50 flex flex-col overflow-hidden">
+          {/* Sticky header */}
+          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border shrink-0">
+            <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
               <button
+                type="button"
                 onClick={closeModal}
-                aria-label="Close"
-                className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-pastel-pink transition-all cursor-pointer"
+                className="w-9 h-9 rounded-xl bg-pastel-pink flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors duration-150 cursor-pointer"
               >
                 <X size={16} aria-hidden="true" />
               </button>
+              <h2 className="font-serif text-lg font-bold text-glam-text">
+                {modal === "create" ? "New Service" : "Edit Service"}
+              </h2>
             </div>
+          </div>
 
-            {/* Modal body — scrollable */}
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto">
             <form
               onSubmit={handleSave}
-              className="overflow-y-auto flex-1 px-6 py-5 space-y-5"
+              noValidate
+              className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5"
             >
+              {/* Validation errors */}
+              {errors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <X size={14} className="text-red-500" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-red-600">Please fill in the following fields:</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {errors.map((err) => (
+                        <li key={err} className="text-xs text-red-500">• {err}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {/* Category (first field) */}
+              <div>
+                <label className="block text-xs font-bold text-glam-text/70 mb-2">Category *</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {categories.map((c) => {
+                    const selected = form.categoryId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setForm({ ...form, categoryId: c.id })}
+                        className={`px-3 py-3 rounded-xl border text-sm font-semibold text-center transition-all duration-150 cursor-pointer min-h-[48px] ${
+                          selected
+                            ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                            : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                        }`}
+                      >
+                        {c.name}
+                        {c.nameAr && <span className="block text-xs mt-0.5 opacity-70" dir="rtl">{c.nameAr}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Name (English) */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
@@ -516,11 +568,10 @@ export default function ServiceManager() {
                 </label>
                 <input
                   type="text"
-                  required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="Classic Manicure"
-                  className={INPUT}
+                  className={`${INPUT} ${errors.includes("Name (English)") ? "border-red-400 ring-2 ring-red-100" : ""}`}
                 />
               </div>
 
@@ -531,12 +582,11 @@ export default function ServiceManager() {
                 </label>
                 <input
                   type="text"
-                  required
                   dir="rtl"
                   value={form.nameAr}
                   onChange={(e) => setForm({ ...form, nameAr: e.target.value })}
                   placeholder="مانيكير كلاسيكي"
-                  className={INPUT}
+                  className={`${INPUT} ${errors.includes("Name (Arabic)") ? "border-red-400 ring-2 ring-red-100" : ""}`}
                 />
               </div>
 
@@ -547,11 +597,10 @@ export default function ServiceManager() {
                 </label>
                 <input
                   type="text"
-                  required
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Short description…"
-                  className={INPUT}
+                  className={`${INPUT} ${errors.includes("Description (English)") ? "border-red-400 ring-2 ring-red-100" : ""}`}
                 />
               </div>
 
@@ -562,12 +611,11 @@ export default function ServiceManager() {
                 </label>
                 <input
                   type="text"
-                  required
                   dir="rtl"
                   value={form.descriptionAr}
                   onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
                   placeholder="وصف قصير…"
-                  className={INPUT}
+                  className={`${INPUT} ${errors.includes("Description (Arabic)") ? "border-red-400 ring-2 ring-red-100" : ""}`}
                 />
               </div>
 
@@ -578,53 +626,16 @@ export default function ServiceManager() {
                 </label>
                 <input
                   type="number"
-                  required
                   min={0}
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
                   placeholder="150"
-                  className={INPUT}
+                  className={`${INPUT} ${errors.includes("Price") ? "border-red-400 ring-2 ring-red-100" : ""}`}
                 />
               </div>
 
-              {/* Points Price (optional) */}
+              {/* Active toggle */}
               <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
-                  Points Price <span className="text-muted font-normal">(optional — leave empty to disable redemption)</span>
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={form.pointsPrice}
-                  onChange={(e) => setForm({ ...form, pointsPrice: e.target.value })}
-                  placeholder="e.g. 500"
-                  className={INPUT}
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Category *</label>
-                <select required value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                  className={`${INPUT} appearance-none cursor-pointer`}>
-                  <option value="">— Select category —</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}{c.nameAr ? ` / ${c.nameAr}` : ""}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Checkboxes */}
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={form.popular}
-                    onChange={(e) => setForm({ ...form, popular: e.target.checked })}
-                    className="w-4 h-4 accent-primary"
-                  />
-                  <span className="text-sm font-medium text-glam-text">Mark as Popular</span>
-                </label>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -738,18 +749,18 @@ export default function ServiceManager() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-1">
+              <div className="flex gap-3 pt-3 pb-6">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]"
+                  className="flex-1 py-3.5 rounded-2xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[52px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all disabled:opacity-50 shadow-sm shadow-primary/20 cursor-pointer min-h-[48px]"
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all disabled:opacity-50 shadow-md shadow-primary/25 cursor-pointer min-h-[52px]"
                 >
                   {saving ? (
                     <>
