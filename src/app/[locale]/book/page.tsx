@@ -344,13 +344,22 @@ function BookingFormContent() {
   if (step === "done") {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 bg-background">
-        <div className="text-center max-w-xs">
-          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <CheckCircle2 size={40} className="text-green-500" strokeWidth={1.5} />
+        <div className="text-center max-w-sm">
+          <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-green-100">
+            <CheckCircle2 size={48} className="text-green-500" strokeWidth={1.5} />
           </div>
-          <h2 className="font-serif text-2xl font-bold text-glam-text mb-2">{t.booking.booked}</h2>
-          <p className="text-sm text-muted">{t.booking.bookedDesc}</p>
-          <p className="text-xs text-muted/60 mt-3">{t.booking.redirecting}</p>
+          <h2 className="font-serif text-3xl font-bold text-glam-text mb-3">
+            {locale === "ar" ? "تم تأكيد حجزك" : "Your Booking Has Been Confirmed"}
+          </h2>
+          {selectedService && (
+            <div className="bg-white rounded-2xl border border-border p-4 mb-4 shadow-sm">
+              <p className="font-bold text-glam-text">{selectedService ? displayName(selectedService) : form.serviceType}</p>
+              <p className="text-sm text-muted mt-1">{form.bookingDate} · {form.bookingTime}</p>
+              <p className="text-sm text-muted">{form.clientName}</p>
+            </div>
+          )}
+          <p className="text-sm text-muted mb-2">{t.booking.bookedDesc}</p>
+          <p className="text-xs text-muted/50">{t.booking.redirecting}</p>
         </div>
       </div>
     );
