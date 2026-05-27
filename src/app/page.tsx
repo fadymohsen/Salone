@@ -158,7 +158,7 @@ export default async function LandingPage() {
 
             <div className="relative w-[280px] h-[380px] md:w-[360px] md:h-[480px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/20 ring-1 ring-white/50">
               <img
-                src="https://images.unsplash.com/photo-1604654894610-df4906b147c0?auto=format&fit=crop&w=800&q=85"
+                src="/hero.jpg"
                 alt="Nail artistry at GlowBook"
                 width={800}
                 height={1060}
