@@ -326,13 +326,13 @@ export default function ServiceManager() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide items-center">
             <span className="w-9" />
-            <span>Service</span>
-            <span>Price</span>
-            <span>Home</span>
-            <span>Status</span>
-            <span>Actions</span>
+            <span className="text-center">Service</span>
+            <span className="text-center">Price</span>
+            <span className="text-center">Home</span>
+            <span className="text-center">Status</span>
+            <span className="text-center">Actions</span>
           </div>
           {services.map((s) => {
             const iconEntry = ICON_OPTIONS.find((o) => o.name === s.iconName);
@@ -353,30 +353,34 @@ export default function ServiceManager() {
                     <p className="text-xs text-muted truncate max-w-xs">{s.description}</p>
                   )}
                 </div>
-                <span className="font-bold text-primary text-sm tabular-nums">{s.price} EGP</span>
-                <button
-                  onClick={() => toggleFeatured(s)}
-                  title={s.featured ? "Remove from homepage" : "Show on homepage"}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
-                    s.featured
-                      ? "bg-primary text-white"
-                      : "bg-background text-muted border border-border hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  <Home size={13} aria-hidden="true" />
-                </button>
-                <button
-                  onClick={() => toggleActive(s)}
-                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all duration-150 w-fit cursor-pointer ${
-                    s.isActive
-                      ? "bg-green-50 text-green-600 border-green-100 hover:bg-green-500 hover:text-white hover:border-green-500"
-                      : "bg-red-50 text-red-400 border-red-100 hover:bg-red-400 hover:text-white hover:border-red-400"
-                  }`}
-                >
-                  <Power size={11} aria-hidden="true" />
-                  {s.isActive ? "Active" : "Inactive"}
-                </button>
-                <div className="flex gap-1.5">
+                <span className="font-bold text-primary text-sm tabular-nums text-center">{s.price} EGP</span>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => toggleFeatured(s)}
+                    title={s.featured ? "Remove from homepage" : "Show on homepage"}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+                      s.featured
+                        ? "bg-primary text-white"
+                        : "bg-background text-muted border border-border hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    <Home size={13} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => toggleActive(s)}
+                    className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all duration-150 cursor-pointer ${
+                      s.isActive
+                        ? "bg-green-50 text-green-600 border-green-100 hover:bg-green-500 hover:text-white hover:border-green-500"
+                        : "bg-red-50 text-red-400 border-red-100 hover:bg-red-400 hover:text-white hover:border-red-400"
+                    }`}
+                  >
+                    <Power size={11} aria-hidden="true" />
+                    {s.isActive ? "Active" : "Inactive"}
+                  </button>
+                </div>
+                <div className="flex justify-center gap-1.5">
                   <button
                     onClick={() => openEdit(s)}
                     title="Edit"
