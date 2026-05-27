@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tag, RotateCcw, Power, Trash2, Plus, Loader2, AlertTriangle, X, CheckSquare } from "lucide-react";
+import { Tag, RotateCcw, Power, Trash2, Plus, Loader2, AlertTriangle, X, CheckSquare, Pencil } from "lucide-react";
 
 type ServiceOption = { id: string; name: string };
 
@@ -34,6 +34,8 @@ export default function PromoManager() {
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Promo | null>(null);
+  const [showServicePicker, setShowServicePicker] = useState(false);
+  const [viewServicesPromo, setViewServicesPromo] = useState<Promo | null>(null);
 
   const fetchPromos = async () => {
     setLoading(true);
@@ -161,47 +163,24 @@ export default function PromoManager() {
             </div>
           </div>
 
-          {/* Service Selection */}
+          {/* Service Selection — compact */}
           <div>
             <label className="block text-xs font-bold text-glam-text/70 mb-2">Applies to</label>
-            <button type="button"
-              onClick={() => setForm({ ...form, allServices: !form.allServices, selectedServices: [] })}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-150 cursor-pointer mb-3 ${
-                form.allServices
-                  ? "bg-primary text-white border-primary"
-                  : "bg-background text-glam-text border-border hover:border-primary/50"
-              }`}>
-              <CheckSquare size={14} aria-hidden="true" />
-              All Services
-            </button>
-            {!form.allServices && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1">
-                {services.map((s) => {
-                  const checked = form.selectedServices.includes(s.id);
-                  return (
-                    <button key={s.id} type="button"
-                      onClick={() => setForm({
-                        ...form,
-                        selectedServices: checked
-                          ? form.selectedServices.filter(id => id !== s.id)
-                          : [...form.selectedServices, s.id],
-                      })}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-start text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        checked
-                          ? "bg-primary/5 border-primary text-primary"
-                          : "bg-background border-border text-glam-text hover:border-primary/40"
-                      }`}>
-                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
-                        checked ? "bg-primary border-primary" : "border-border"
-                      }`}>
-                        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                      </div>
-                      <span className="truncate">{s.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {form.allServices ? (
+                <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-sm font-bold px-3 py-2 rounded-xl border border-primary/20">
+                  <CheckSquare size={13} aria-hidden="true" /> All Services
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 bg-pastel-pink text-primary text-sm font-bold px-3 py-2 rounded-xl">
+                  {form.selectedServices.length} service{form.selectedServices.length !== 1 ? "s" : ""} selected
+                </span>
+              )}
+              <button type="button" onClick={() => setShowServicePicker(true)}
+                className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-secondary transition-colors cursor-pointer px-3 py-2 rounded-xl border border-border hover:border-primary/40">
+                <Pencil size={12} aria-hidden="true" /> Edit
+              </button>
+            </div>
           </div>
 
           <button
@@ -235,16 +214,20 @@ export default function PromoManager() {
             <div key={p.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100">
               {/* Desktop */}
               <div className="hidden md:grid grid-cols-[1fr_90px_90px_110px_100px] gap-3 px-5 py-3.5 items-center">
-                <div>
+                <div className="flex items-center gap-2">
                   <span className="font-black text-glam-text tracking-wider flex items-center gap-2">
                     <Tag size={13} className="text-primary/50" aria-hidden="true" />
                     {p.code}
                   </span>
-                  <p className="text-xs text-muted mt-0.5">
-                    {p.serviceIds
-                      ? p.serviceIds.split(",").map(id => services.find(s => s.id === id)?.name).filter(Boolean).join(", ") || "Specific services"
-                      : "All services"}
-                  </p>
+                  {p.serviceIds ? (
+                    <button type="button" onClick={() => setViewServicesPromo(p)}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-primary bg-pastel-pink px-2 py-0.5 rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer">
+                      {p.serviceIds.split(",").length} service{p.serviceIds.split(",").length !== 1 ? "s" : ""}
+                      <Pencil size={9} aria-hidden="true" />
+                    </button>
+                  ) : (
+                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">All Services</span>
+                  )}
                 </div>
                 <span className="font-bold text-primary tabular-nums">{p.discount}% off</span>
                 <span className="text-sm text-muted tabular-nums">
@@ -297,6 +280,101 @@ export default function PromoManager() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Service Picker Modal (for create form) */}
+      {showServicePicker && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowServicePicker(false); }}>
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between shrink-0">
+              <h2 className="font-serif font-bold text-glam-text">Select Services</h2>
+              <button onClick={() => setShowServicePicker(false)} aria-label="Close"
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-pastel-pink transition-all cursor-pointer">
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-2">
+              <button type="button"
+                onClick={() => setForm({ ...form, allServices: true, selectedServices: [] })}
+                className={`w-full flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                  form.allServices
+                    ? "bg-primary text-white border-primary"
+                    : "bg-background text-glam-text border-border hover:border-primary/50"
+                }`}>
+                <CheckSquare size={14} aria-hidden="true" /> All Services
+              </button>
+              {!form.allServices && <p className="text-xs text-muted py-1">Or select specific services:</p>}
+              {services.map((s) => {
+                const checked = form.allServices || form.selectedServices.includes(s.id);
+                return (
+                  <button key={s.id} type="button"
+                    disabled={form.allServices}
+                    onClick={() => setForm({
+                      ...form,
+                      allServices: false,
+                      selectedServices: form.selectedServices.includes(s.id)
+                        ? form.selectedServices.filter(id => id !== s.id)
+                        : [...form.selectedServices, s.id],
+                    })}
+                    className={`w-full flex items-center gap-2 px-4 py-3 rounded-xl border text-start text-sm font-medium transition-all duration-150 cursor-pointer ${
+                      form.allServices ? "opacity-40 cursor-not-allowed border-border" :
+                      checked ? "bg-primary/5 border-primary text-primary" : "bg-background border-border text-glam-text hover:border-primary/40"
+                    }`}>
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
+                      checked ? "bg-primary border-primary" : "border-border"
+                    }`}>
+                      {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                    </div>
+                    <span className="truncate">{s.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="px-6 py-4 border-t border-border shrink-0">
+              <button type="button" onClick={() => setShowServicePicker(false)}
+                className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all duration-150 cursor-pointer min-h-[48px]">
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Services Popup (for promo list) */}
+      {viewServicesPromo && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setViewServicesPromo(null); }}>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl">
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+              <div>
+                <h2 className="font-serif font-bold text-glam-text">{viewServicesPromo.code}</h2>
+                <p className="text-xs text-muted">{viewServicesPromo.discount}% off · Applied to:</p>
+              </div>
+              <button onClick={() => setViewServicesPromo(null)} aria-label="Close"
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-pastel-pink transition-all cursor-pointer">
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-2 max-h-[50vh] overflow-y-auto">
+              {viewServicesPromo.serviceIds ? (
+                viewServicesPromo.serviceIds.split(",").map((id) => {
+                  const svc = services.find(s => s.id === id);
+                  return svc ? (
+                    <div key={id} className="flex items-center gap-2 bg-pastel-pink/40 rounded-xl px-4 py-2.5">
+                      <Tag size={12} className="text-primary shrink-0" aria-hidden="true" />
+                      <span className="text-sm font-medium text-glam-text">{svc.name}</span>
+                    </div>
+                  ) : null;
+                })
+              ) : (
+                <div className="text-center py-4">
+                  <span className="text-sm font-bold text-green-600 bg-green-50 px-4 py-2 rounded-full border border-green-100">All Services</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
