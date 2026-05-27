@@ -359,14 +359,12 @@ export default function DashboardPage() {
                 <div key={b.id} className="bg-white rounded-2xl border border-border p-4 shadow-sm">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
-                        {b.paymentMethod === "points" && (
-                          <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
-                            <Star size={9} aria-hidden="true" /> {locale === "ar" ? "ولاء" : "Loyalty"}
-                          </span>
-                        )}
-                      </div>
+                      {b.paymentMethod === "points" && (
+                        <span className="inline-flex items-center gap-0.5 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full mb-1.5">
+                          <Star size={9} aria-hidden="true" /> {locale === "ar" ? "برنامج الولاء" : "Loyalty Program"}
+                        </span>
+                      )}
+                      <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="flex items-center gap-1 text-xs text-muted"><CalendarDays size={11} aria-hidden="true" /> {b.bookingDate}</span>
                         <span className="flex items-center gap-1 text-xs text-muted"><Clock size={11} aria-hidden="true" /> {b.bookingTime}</span>
@@ -427,14 +425,12 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
-                      {b.paymentMethod === "points" && (
-                        <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
-                          <Star size={9} aria-hidden="true" /> {locale === "ar" ? "ولاء" : "Loyalty"}
-                        </span>
-                      )}
-                    </div>
+                    {b.paymentMethod === "points" && (
+                      <span className="inline-flex items-center gap-0.5 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full mb-0.5">
+                        <Star size={9} aria-hidden="true" /> {locale === "ar" ? "برنامج الولاء" : "Loyalty Program"}
+                      </span>
+                    )}
+                    <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
                     <p className="text-xs text-muted">{b.bookingDate} · {b.bookingTime}</p>
                   </div>
                   {b.pointsEarned && b.pointsEarned > 0 && (
