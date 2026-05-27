@@ -224,7 +224,7 @@ function BookingFormContent() {
     setPromoError("");
     setPromoDiscount(null);
     try {
-      const res = await fetch("/api/promo/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: form.promoCode }) });
+      const res = await fetch("/api/promo/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: form.promoCode, serviceType: form.serviceType }) });
       const data = await res.json();
       if (data.valid) setPromoDiscount(data.discount);
       else setPromoError(data.error || (locale === "ar" ? "كود غير صالح" : "Invalid code"));

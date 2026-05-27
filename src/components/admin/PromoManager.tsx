@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tag, RotateCcw, Power, Trash2, Plus, Loader2, AlertTriangle, X } from "lucide-react";
+import { Tag, RotateCcw, Power, Trash2, Plus, Loader2, AlertTriangle, X, CheckSquare } from "lucide-react";
+
+type ServiceOption = { id: string; name: string };
 
 type Promo = {
   id: string;
@@ -10,6 +12,7 @@ type Promo = {
   isActive: boolean;
   usageCount: number;
   maxUsage: number | null;
+  serviceIds: string | null;
   createdAt: string;
 };
 
@@ -24,8 +27,9 @@ const INPUT_CLS = "w-full bg-background border border-border rounded-xl px-3 py-
 
 export default function PromoManager() {
   const [promos, setPromos] = useState<Promo[]>([]);
+  const [services, setServices] = useState<ServiceOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ code: randomCode(), discount: "15", maxUsage: "" });
+  const [form, setForm] = useState({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [] as string[], allServices: true });
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -38,7 +42,16 @@ export default function PromoManager() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPromos(); }, []);
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/admin/promos").then(r => r.json()),
+      fetch("/api/admin/services").then(r => r.json()),
+    ]).then(([pData, sData]) => {
+      setPromos(Array.isArray(pData) ? pData : []);
+      setServices(Array.isArray(sData) ? sData : []);
+      setLoading(false);
+    });
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,11 +59,16 @@ export default function PromoManager() {
     const res = await fetch("/api/admin/promos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: form.code, discount: Number(form.discount), maxUsage: form.maxUsage ? Number(form.maxUsage) : null }),
+      body: JSON.stringify({
+        code: form.code,
+        discount: Number(form.discount),
+        maxUsage: form.maxUsage ? Number(form.maxUsage) : null,
+        serviceIds: form.allServices ? null : form.selectedServices.join(","),
+      }),
     });
     setSaving(false);
     if (res.ok) {
-      setForm({ code: randomCode(), discount: "15", maxUsage: "" });
+      setForm({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [], allServices: true });
       setShowForm(false);
       fetchPromos();
     } else {
@@ -80,7 +98,7 @@ export default function PromoManager() {
       {/* Header button */}
       <div className="flex justify-end">
         <button
-          onClick={() => { setForm({ code: randomCode(), discount: "15", maxUsage: "" }); setShowForm(!showForm); }}
+          onClick={() => { setForm({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [], allServices: true }); setShowForm(!showForm); }}
           className="flex items-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]"
         >
           {showForm ? (
@@ -142,9 +160,53 @@ export default function PromoManager() {
               />
             </div>
           </div>
+
+          {/* Service Selection */}
+          <div>
+            <label className="block text-xs font-bold text-glam-text/70 mb-2">Applies to</label>
+            <button type="button"
+              onClick={() => setForm({ ...form, allServices: !form.allServices, selectedServices: [] })}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-150 cursor-pointer mb-3 ${
+                form.allServices
+                  ? "bg-primary text-white border-primary"
+                  : "bg-background text-glam-text border-border hover:border-primary/50"
+              }`}>
+              <CheckSquare size={14} aria-hidden="true" />
+              All Services
+            </button>
+            {!form.allServices && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1">
+                {services.map((s) => {
+                  const checked = form.selectedServices.includes(s.id);
+                  return (
+                    <button key={s.id} type="button"
+                      onClick={() => setForm({
+                        ...form,
+                        selectedServices: checked
+                          ? form.selectedServices.filter(id => id !== s.id)
+                          : [...form.selectedServices, s.id],
+                      })}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-start text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        checked
+                          ? "bg-primary/5 border-primary text-primary"
+                          : "bg-background border-border text-glam-text hover:border-primary/40"
+                      }`}>
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
+                        checked ? "bg-primary border-primary" : "border-border"
+                      }`}>
+                        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                      </div>
+                      <span className="truncate">{s.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || (!form.allServices && form.selectedServices.length === 0)}
             className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all duration-150 disabled:opacity-50 min-h-[48px] cursor-pointer shadow-sm shadow-primary/20"
           >
             {saving ? (
@@ -173,10 +235,17 @@ export default function PromoManager() {
             <div key={p.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100">
               {/* Desktop */}
               <div className="hidden md:grid grid-cols-[1fr_90px_90px_110px_100px] gap-3 px-5 py-3.5 items-center">
-                <span className="font-black text-glam-text tracking-wider flex items-center gap-2">
-                  <Tag size={13} className="text-primary/50" aria-hidden="true" />
-                  {p.code}
-                </span>
+                <div>
+                  <span className="font-black text-glam-text tracking-wider flex items-center gap-2">
+                    <Tag size={13} className="text-primary/50" aria-hidden="true" />
+                    {p.code}
+                  </span>
+                  <p className="text-xs text-muted mt-0.5">
+                    {p.serviceIds
+                      ? p.serviceIds.split(",").map(id => services.find(s => s.id === id)?.name).filter(Boolean).join(", ") || "Specific services"
+                      : "All services"}
+                  </p>
+                </div>
                 <span className="font-bold text-primary tabular-nums">{p.discount}% off</span>
                 <span className="text-sm text-muted tabular-nums">
                   {p.usageCount}{p.maxUsage ? `/${p.maxUsage}` : ""}
@@ -205,6 +274,7 @@ export default function PromoManager() {
               <div className="md:hidden px-4 py-3 flex items-center gap-3">
                 <div className="flex-1">
                   <p className="font-black text-glam-text tracking-wider">{p.code}</p>
+                  <p className="text-xs text-muted">{p.serviceIds ? `${p.serviceIds.split(",").length} services` : "All services"}</p>
                   <p className="text-xs text-muted mt-0.5">{p.discount}% off · Used {p.usageCount}{p.maxUsage ? `/${p.maxUsage}` : ""} times</p>
                 </div>
                 <button
