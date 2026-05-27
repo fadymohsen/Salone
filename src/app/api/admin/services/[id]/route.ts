@@ -26,6 +26,7 @@ export async function PUT(
         featured: body.featured !== undefined ? Boolean(body.featured) : undefined,
         pointsPrice: body.pointsPrice !== undefined ? (body.pointsPrice != null ? Number(body.pointsPrice) : null) : undefined,
         rewardDiscount: body.rewardDiscount !== undefined ? (body.rewardDiscount != null ? Number(body.rewardDiscount) : null) : undefined,
+        duration: body.duration !== undefined ? Number(body.duration) : undefined,
         iconName: body.iconName || null,
         categoryId: body.categoryId !== undefined ? (body.categoryId || null) : undefined,
         sortOrder: body.sortOrder != null ? Number(body.sortOrder) : undefined,

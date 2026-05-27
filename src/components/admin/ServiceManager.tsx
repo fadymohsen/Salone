@@ -23,6 +23,7 @@ type Service = {
   popular: boolean;
   featured: boolean;
   pointsPrice: number | null;
+  duration: number;
   iconName: string | null;
   sortOrder: number;
   availableDays: string;
@@ -40,6 +41,7 @@ type FormState = {
   popular: boolean;
   featured: boolean;
   pointsPrice: string;
+  duration: number;
   iconName: string;
   categoryId: string;
   availableDays: number[];
@@ -61,6 +63,7 @@ const EMPTY_FORM: FormState = {
   popular: false,
   featured: false,
   pointsPrice: "",
+  duration: 60,
   iconName: "",
   categoryId: "",
   availableDays: DEFAULT_DAYS,
@@ -128,6 +131,7 @@ function formFromService(s: Service): FormState {
     popular: s.popular,
     featured: s.featured,
     pointsPrice: s.pointsPrice != null ? String(s.pointsPrice) : "",
+    duration: s.duration,
     iconName: s.iconName ?? "",
     categoryId: s.categoryId ?? "",
     availableDays: s.availableDays ? parseDays(s.availableDays) : DEFAULT_DAYS,
@@ -215,6 +219,7 @@ export default function ServiceManager() {
       popular: form.popular,
       featured: form.featured,
       pointsPrice: form.pointsPrice ? Number(form.pointsPrice) : null,
+      duration: form.duration,
       iconName: form.iconName,
       categoryId: form.categoryId || null,
       availableDays: form.availableDays.slice().sort((a, b) => a - b).join(","),
@@ -632,6 +637,39 @@ export default function ServiceManager() {
                   placeholder="150"
                   className={`${INPUT} ${errors.includes("Price") ? "border-red-400 ring-2 ring-red-100" : ""}`}
                 />
+              </div>
+
+              {/* Duration */}
+              <div>
+                <label className="block text-xs font-bold text-glam-text/70 mb-2">Duration *</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { value: 15, label: "15 min" },
+                    { value: 30, label: "30 min" },
+                    { value: 45, label: "45 min" },
+                    { value: 60, label: "1H" },
+                    { value: 75, label: "1H 15m" },
+                    { value: 90, label: "1H 30m" },
+                    { value: 105, label: "1H 45m" },
+                    { value: 120, label: "2H" },
+                  ].map((opt) => {
+                    const selected = form.duration === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setForm({ ...form, duration: opt.value })}
+                        className={`py-2.5 rounded-xl border text-xs font-bold text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
+                          selected
+                            ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                            : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Active toggle */}

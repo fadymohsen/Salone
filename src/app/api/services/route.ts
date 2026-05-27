@@ -19,6 +19,7 @@ export async function GET() {
       categoryId: true,
       pointsPrice: true,
       rewardDiscount: true,
+      duration: true,
       category: { select: { id: true, name: true, nameAr: true } },
     },
   });
