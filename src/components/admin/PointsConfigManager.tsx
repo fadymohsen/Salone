@@ -120,7 +120,10 @@ export default function PointsConfigManager() {
           </li>
           <li className="flex items-start gap-2">
             <Star size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-            After reaching <strong className="text-glam-text">{threshold} points</strong>, an auto-coupon for <strong className="text-glam-text">{discount}% off</strong> is generated
+            {threshold > 0
+              ? <>After reaching <strong className="text-glam-text">{threshold} points</strong>, an auto-coupon for <strong className="text-glam-text">{discount}% off</strong> is generated</>
+              : <>Auto-coupon is <strong className="text-glam-text">disabled</strong> — set a points threshold above to enable it</>
+            }
           </li>
           <li className="flex items-start gap-2">
             <Gift size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
@@ -139,18 +142,17 @@ export default function PointsConfigManager() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="pts-threshold" className="block text-xs font-bold text-glam-text/70 mb-1.5">
-              Points Needed for Auto-Coupon
+              Points Needed for Auto-Coupon <span className="text-muted font-normal">(optional — leave 0 to disable)</span>
             </label>
             <input
               id="pts-threshold"
               type="number"
-              min="1"
-              required
+              min="0"
               value={form.pointsThreshold}
               onChange={(e) => setForm({ ...form, pointsThreshold: e.target.value })}
               className={INPUT_CLS}
             />
-            <p className="text-xs text-muted mt-1">e.g., 500 = spend 500 EGP total to earn a coupon</p>
+            <p className="text-xs text-muted mt-1">e.g., 500 = spend 500 EGP total to earn a coupon. Set 0 to disable auto-coupons.</p>
           </div>
           <div>
             <label htmlFor="coupon-discount" className="block text-xs font-bold text-glam-text/70 mb-1.5">
@@ -159,12 +161,12 @@ export default function PointsConfigManager() {
             <input
               id="coupon-discount"
               type="number"
-              min="1"
+              min="0"
               max="100"
-              required
               value={form.couponDiscount}
               onChange={(e) => setForm({ ...form, couponDiscount: e.target.value })}
-              className={INPUT_CLS}
+              disabled={!Number(form.pointsThreshold)}
+              className={`${INPUT_CLS} disabled:opacity-50`}
             />
             <p className="text-xs text-muted mt-1">Discount % on the auto-generated coupon</p>
           </div>

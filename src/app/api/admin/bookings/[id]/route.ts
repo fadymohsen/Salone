@@ -35,8 +35,8 @@ async function awardPointsIfCompleted(bookingId: string, previousStatus: string,
       data: { userId: booking.userId!, points: pointsToAward, description: `Completed booking: ${booking.serviceType} (${pointsToAward} EGP)` },
     });
 
-    // Auto-generate coupon if threshold reached
-    if (user.points >= threshold) {
+    // Auto-generate coupon if threshold reached (skip if threshold is 0 = disabled)
+    if (threshold > 0 && user.points >= threshold) {
       const code = `GLOW${randomBytes(3).toString("hex").toUpperCase()}`;
       await tx.promoCode.create({
         data: { code, discount: couponDiscount, isActive: true, maxUsage: 1, autoGen: true, userId: booking.userId! },
