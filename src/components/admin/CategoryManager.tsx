@@ -96,18 +96,16 @@ export default function CategoryManager() {
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
           {/* Column headers */}
-          <div className="hidden md:grid grid-cols-[1fr_1fr_100px_80px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide items-center">
-            <span className="text-center">Name (EN)</span>
-            <span className="text-center">Name (AR)</span>
+          <div className="hidden md:grid grid-cols-[1fr_100px_80px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide items-center">
+            <span className="text-center">Name</span>
             <span className="text-center">Status</span>
             <span className="text-center">Actions</span>
           </div>
           {categories.map((c) => (
             <div key={c.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100">
               {/* Desktop */}
-              <div className="hidden md:grid grid-cols-[1fr_1fr_100px_80px] gap-3 px-5 py-3.5 items-center">
+              <div className="hidden md:grid grid-cols-[1fr_100px_80px] gap-3 px-5 py-3.5 items-center">
                 <p className="font-bold text-sm text-glam-text text-center">{c.name}</p>
-                <p className="text-sm text-muted text-center" dir="rtl">{c.nameAr ?? "—"}</p>
                 <div className="flex justify-center">
                   <button onClick={() => toggleActive(c)}
                     className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all duration-150 cursor-pointer ${
