@@ -418,8 +418,8 @@ export default function DashboardPage() {
             <h2 className="font-serif text-base font-bold text-glam-text mb-3">{t.dashboard.history}</h2>
             <div className="bg-white rounded-2xl border border-border divide-y divide-border overflow-hidden">
               {past.map(b => (
-                <div key={b.id} className="px-4 py-3 flex items-center gap-3">
-                  <div className="shrink-0">
+                <div key={b.id} className="px-4 py-3 flex items-start gap-3">
+                  <div className="shrink-0 mt-0.5">
                     {b.status === "completed" ? (
                       <CheckCircle2 size={16} className="text-green-500" aria-hidden="true" />
                     ) : (
@@ -427,7 +427,8 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Line 1: Service name + loyalty tag */}
+                    <div className="flex items-center gap-1.5">
                       <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
                       {b.paymentMethod === "points" && (
                         <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap shrink-0">
@@ -435,16 +436,20 @@ export default function DashboardPage() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted">{b.bookingDate} · {b.bookingTime}</p>
+                    {/* Line 2: Date & time */}
+                    <p className="text-xs text-muted mt-0.5">{b.bookingDate} · {b.bookingTime}</p>
+                    {/* Line 3: Points + status */}
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {b.pointsEarned && b.pointsEarned > 0 && (
+                        <span className="text-xs font-bold text-primary bg-pastel-pink px-2 py-0.5 rounded-full">
+                          +{b.pointsEarned} pts
+                        </span>
+                      )}
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border capitalize ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                        {b.status}
+                      </span>
+                    </div>
                   </div>
-                  {b.pointsEarned && b.pointsEarned > 0 && (
-                    <span className="text-xs font-bold text-primary bg-pastel-pink px-2 py-0.5 rounded-full">
-                      +{b.pointsEarned} pts
-                    </span>
-                  )}
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize shrink-0 ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
-                    {b.status}
-                  </span>
                 </div>
               ))}
             </div>
