@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const [newTime, setNewTime] = useState("11:00");
   const [saving, setSaving] = useState(false);
   const [redeemServices, setRedeemServices] = useState<RedeemService[]>([]);
+  const [generatingCoupon, setGeneratingCoupon] = useState(false);
   const [redeemId, setRedeemId] = useState<string | null>(null);
   const [redeemDate, setRedeemDate] = useState("");
   const [redeemTime, setRedeemTime] = useState("");
@@ -162,6 +163,31 @@ export default function DashboardPage() {
     }
   };
 
+  const handleGenerateCoupon = async () => {
+    setGeneratingCoupon(true);
+    try {
+      const res = await fetch("/api/user/generate-coupon", { method: "POST" });
+      if (res.ok) {
+        // Refresh all data
+        const [meData, bData, cData] = await Promise.all([
+          fetch("/api/auth/me").then(r => r.json()),
+          fetch("/api/user/bookings").then(r => r.json()),
+          fetch("/api/user/coupons").then(r => r.json()),
+        ]);
+        if (meData.user) setUser(meData.user);
+        setBookings(Array.isArray(bData) ? bData : []);
+        if (cData && !cData.error) setCouponsData(cData);
+      } else {
+        const data = await res.json();
+        alert(data.error || (locale === "ar" ? "حدث خطأ" : "Something went wrong"));
+      }
+    } catch {
+      alert(locale === "ar" ? "خطأ في الاتصال" : "Connection error");
+    } finally {
+      setGeneratingCoupon(false);
+    }
+  };
+
   const selectedRedeemService = redeemServices.find(s => s.id === redeemId);
   const redeemAvailableDays = selectedRedeemService?.availableDays
     ? selectedRedeemService.availableDays.split(",").map(d => parseInt(d.trim(), 10)).filter(n => !isNaN(n))
@@ -237,20 +263,34 @@ export default function DashboardPage() {
               {t.dashboard.rewards}
             </h2>
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <p className="text-xs font-bold text-glam-text">{t.dashboard.pointsProgress}</p>
-                <p className="text-xs font-bold text-primary">{user.points} / {couponsData.threshold} pts</p>
+            {/* Auto-coupon progress (only if threshold > 0) */}
+            {couponsData.threshold > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs font-bold text-glam-text">{t.dashboard.pointsProgress}</p>
+                  <p className="text-xs font-bold text-primary">{user.points} / {couponsData.threshold} pts</p>
+                </div>
+                <div className="h-2.5 bg-pastel-pink rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (user.points / couponsData.threshold) * 100)}%` }} />
+                </div>
+                {user.points >= couponsData.threshold ? (
+                  <button
+                    onClick={handleGenerateCoupon}
+                    disabled={generatingCoupon}
+                    className="mt-3 w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-2xl shadow-md shadow-primary/25 hover:bg-secondary transition-all duration-200 disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+                  >
+                    {generatingCoupon
+                      ? <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {locale === "ar" ? "جاري الإنشاء..." : "Generating..."}</>
+                      : <><Gift size={14} aria-hidden="true" /> {locale === "ar" ? `استبدال ${couponsData.threshold} نقطة بكوبون ${couponsData.couponDiscount}% خصم` : `Redeem ${couponsData.threshold} pts for ${couponsData.couponDiscount}% off coupon`}</>
+                    }
+                  </button>
+                ) : (
+                  <p className="text-xs text-muted mt-1.5">
+                    {couponsData.threshold - user.points} {t.dashboard.morePoints1} {couponsData.couponDiscount}% {t.dashboard.morePoints2}
+                  </p>
+                )}
               </div>
-              <div className="h-2.5 bg-pastel-pink rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (user.points / couponsData.threshold) * 100)}%` }} />
-              </div>
-              <p className="text-xs text-muted mt-1.5">
-                {user.points >= couponsData.threshold
-                  ? t.dashboard.thresholdReached
-                  : `${couponsData.threshold - user.points} ${t.dashboard.morePoints1} ${couponsData.couponDiscount}% ${t.dashboard.morePoints2} · ${couponsData.pointsPerBooking} ${t.dashboard.ptsPerBooking}`}
-              </p>
-            </div>
+            )}
 
             {couponsData.coupons.length > 0 && (
               <div className="space-y-2">

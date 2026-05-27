@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { randomBytes } from "node:crypto";
+
 
 async function awardPointsIfCompleted(bookingId: string, previousStatus: string, newStatus: string) {
   if (previousStatus === "completed" || newStatus !== "completed") return;
@@ -35,17 +35,7 @@ async function awardPointsIfCompleted(bookingId: string, previousStatus: string,
       data: { userId: booking.userId!, points: pointsToAward, description: `Completed booking: ${booking.serviceType} (${pointsToAward} EGP)` },
     });
 
-    // Auto-generate coupon if threshold reached (skip if threshold is 0 = disabled)
-    if (threshold > 0 && user.points >= threshold) {
-      const code = `GLOW${randomBytes(3).toString("hex").toUpperCase()}`;
-      await tx.promoCode.create({
-        data: { code, discount: couponDiscount, isActive: true, maxUsage: 1, autoGen: true, userId: booking.userId! },
-      });
-      await tx.user.update({ where: { id: booking.userId! }, data: { points: { decrement: threshold } } });
-      await tx.pointsTransaction.create({
-        data: { userId: booking.userId!, points: -threshold, description: `Redeemed for coupon ${code} (${couponDiscount}% off)` },
-      });
-    }
+    // Points accumulate — user can choose to redeem for coupon from their dashboard
   });
 }
 
