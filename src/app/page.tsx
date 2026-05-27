@@ -3,8 +3,9 @@ import {
   Sparkles, Gem, Star, Palette, Eye, Scissors, Heart, Wand2,
   Brush, Crown, Leaf, Sun, Zap, Droplets, Flower2, Ribbon,
   MapPin, AtSign, MessageCircle, ArrowRight,
-  CheckCircle2, ChevronRight,
+  CheckCircle2, ChevronRight, Gift, Trophy, Ticket,
 } from "lucide-react";
+import FaqAccordion from "@/components/FaqAccordion";
 import { prisma } from "@/lib/db";
 import type { LucideIcon } from "lucide-react";
 
@@ -34,6 +35,21 @@ const STATS = [
   { value: "60s", label: "To Book" },
 ];
 
+const FAQ_ITEMS = [
+  { q: "How long does a nail appointment take?", a: "Most services take between 45 minutes to 1.5 hours depending on the complexity. Gel extensions and intricate nail art may take up to 2 hours. We'll always give you a time estimate when you book." },
+  { q: "Do I need to pay a deposit when booking?", a: "No! We never charge deposits or hidden fees. You only pay when you arrive at your appointment. Easy and stress-free." },
+  { q: "Can I reschedule or cancel my booking?", a: "Absolutely. You can reschedule or cancel anytime through your account dashboard or by messaging us on WhatsApp. We just ask for at least 4 hours notice." },
+  { q: "What payment methods do you accept?", a: "We accept cash, Visa, MasterCard, and mobile wallets (Vodafone Cash, InstaPay). Pay however is most convenient for you." },
+  { q: "How does the loyalty points program work?", a: "You earn points with every booking. Once you hit the threshold, you automatically receive a discount coupon for your next visit. Create a free account to start earning!" },
+  { q: "Do you use gel or acrylic products?", a: "We use premium, salon-grade gel and acrylic products from trusted international brands. All our products are safe, long-lasting, and gentle on natural nails." },
+];
+
+const LOYALTY_STEPS = [
+  { icon: Trophy, title: "Book & Earn", desc: "Earn points with every appointment you complete." },
+  { icon: Gift, title: "Hit Your Goal", desc: "Reach the points threshold and unlock your reward." },
+  { icon: Ticket, title: "Get a Coupon", desc: "Receive an automatic discount on your next visit." },
+];
+
 const TESTIMONIALS = [
   {
     quote: "The glazed donut nails were absolutely perfect! Lasted 3 weeks without a single chip.",
@@ -57,9 +73,13 @@ const TESTIMONIALS = [
 
 export default async function LandingPage() {
   let dbServices: Awaited<ReturnType<typeof prisma.service.findMany>> = [];
+  let pointsConfig: { pointsPerBooking: number; pointsThreshold: number; couponDiscount: number } | null = null;
 
   try {
-    dbServices = await prisma.service.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
+    [dbServices, pointsConfig] = await Promise.all([
+      prisma.service.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
+      prisma.pointsConfig.findFirst(),
+    ]);
   } catch {
     // DB not reachable — render with fallback content
   }
@@ -324,6 +344,105 @@ export default async function LandingPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          LOYALTY POINTS PROMO
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="px-6 py-24 max-w-6xl mx-auto w-full">
+        <div className="relative bg-gradient-to-br from-primary/5 via-pastel-pink/60 to-secondary/5 rounded-[2rem] border border-primary/10 overflow-hidden">
+          {/* Decorative */}
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/5 blur-3xl -translate-y-1/2 translate-x-1/3" aria-hidden="true" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-secondary/5 blur-3xl translate-y-1/3 -translate-x-1/4" aria-hidden="true" />
+
+          <div className="relative z-10 px-6 sm:px-10 py-14 sm:py-16">
+            <div className="text-center mb-12">
+              <span className="inline-flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-[0.12em] bg-white border border-border px-4 py-1.5 rounded-full mb-4">
+                <Gift size={13} aria-hidden="true" />
+                Rewards Program
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-glam-text">
+                Earn Points. Get <span className="text-primary italic">Rewarded.</span>
+              </h2>
+              <p className="text-muted mt-3 max-w-md mx-auto text-sm leading-relaxed">
+                Every booking brings you closer to free discounts. Join our loyalty program — it&apos;s free and automatic.
+              </p>
+            </div>
+
+            {/* Steps */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+              {LOYALTY_STEPS.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 text-center border border-white shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-4">
+                      <Icon size={22} className="text-primary" aria-hidden="true" strokeWidth={1.75} />
+                    </div>
+                    <h3 className="font-serif text-base font-semibold text-glam-text mb-1.5">{step.title}</h3>
+                    <p className="text-sm text-muted leading-relaxed">{step.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Dynamic stats from DB */}
+            {pointsConfig && (
+              <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-10">
+                <div className="text-center">
+                  <p className="font-serif text-2xl sm:text-3xl font-bold text-primary">{pointsConfig.pointsPerBooking}</p>
+                  <p className="text-xs text-muted mt-1">Points per booking</p>
+                </div>
+                <div className="w-px h-10 bg-border hidden sm:block" aria-hidden="true" />
+                <div className="text-center">
+                  <p className="font-serif text-2xl sm:text-3xl font-bold text-primary">{pointsConfig.pointsThreshold}</p>
+                  <p className="text-xs text-muted mt-1">Points to unlock reward</p>
+                </div>
+                <div className="w-px h-10 bg-border hidden sm:block" aria-hidden="true" />
+                <div className="text-center">
+                  <p className="font-serif text-2xl sm:text-3xl font-bold text-primary">{pointsConfig.couponDiscount}%</p>
+                  <p className="text-xs text-muted mt-1">Discount coupon</p>
+                </div>
+              </div>
+            )}
+
+            <div className="text-center">
+              <Link
+                href="/account/register"
+                className="inline-flex items-center gap-2 bg-primary text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary/25 hover:bg-secondary transition-all duration-200 active:scale-[0.97] cursor-pointer text-base"
+              >
+                Create Free Account
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+              <p className="text-xs text-muted mt-3">Already have an account? <Link href="/account/login" className="text-primary font-semibold hover:underline">Sign in</Link></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          FAQ
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section id="faq" className="px-6 py-24 bg-pastel-pink/30 scroll-mt-16">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.12em] bg-white border border-border px-4 py-1.5 rounded-full mb-4">
+              Got Questions?
+            </span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-glam-text">Frequently Asked Questions</h2>
+            <p className="text-muted mt-3 text-sm">Everything you need to know before booking.</p>
+          </div>
+
+          <FaqAccordion items={FAQ_ITEMS} />
+
+          <div className="text-center mt-10">
+            <p className="text-sm text-muted">
+              Still have questions?{" "}
+              <a href="https://wa.me/201000000000" className="text-primary font-semibold hover:underline">
+                Chat with us on WhatsApp
+              </a>
+            </p>
           </div>
         </div>
       </section>
