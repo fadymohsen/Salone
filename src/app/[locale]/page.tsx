@@ -437,7 +437,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/25">
             <span>© {new Date().getFullYear()} {t.footer.copyright}</span>
             <div className="flex items-center gap-4">
-              <Link href={l("/book")} className="text-primary hover:text-secondary font-semibold transition-colors duration-150 cursor-pointer">{t.footer.bookAppointment}</Link>
+              <span>{t.footer.poweredBy} <a href="https://veliq.co" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-secondary font-semibold transition-colors duration-150 cursor-pointer">VELIQ</a></span>
             </div>
           </div>
         </div>
