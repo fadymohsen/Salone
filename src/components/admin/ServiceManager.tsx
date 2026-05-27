@@ -44,14 +44,16 @@ type FormState = {
   duration: number;
   iconName: string;
   categoryId: string;
-  availableDays: number[];
-  timeSlots: string[];
+  daySlots: Record<string, string[]>;
 };
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const DEFAULT_DAYS = [1, 2, 3, 4, 5, 6];
 const DEFAULT_TIMES = ["11:00", "12:30", "14:00", "15:30", "17:00", "18:30", "20:00"];
+const DEFAULT_DAY_SLOTS: Record<string, string[]> = {
+  "1": [...DEFAULT_TIMES], "2": [...DEFAULT_TIMES], "3": [...DEFAULT_TIMES],
+  "4": [...DEFAULT_TIMES], "5": [...DEFAULT_TIMES], "6": [...DEFAULT_TIMES],
+};
 
 const EMPTY_FORM: FormState = {
   name: "",
@@ -63,11 +65,10 @@ const EMPTY_FORM: FormState = {
   popular: false,
   featured: false,
   pointsPrice: "",
-  duration: 60,
+  duration: 0,
   iconName: "",
   categoryId: "",
-  availableDays: DEFAULT_DAYS,
-  timeSlots: DEFAULT_TIMES,
+  daySlots: {},
 };
 
 const INPUT =
@@ -120,6 +121,20 @@ function sortTimes(times: string[]): string[] {
   });
 }
 
+function parseDaySlots(availableDays: string, timeSlots: string): Record<string, string[]> {
+  // Try JSON format first (new format)
+  try {
+    const parsed = JSON.parse(timeSlots);
+    if (typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+  } catch { /* not JSON, fall back to CSV */ }
+  // Legacy CSV format: same times for all days
+  const days = parseDays(availableDays);
+  const times = parseTimes(timeSlots);
+  const result: Record<string, string[]> = {};
+  for (const d of days) result[String(d)] = [...times];
+  return result;
+}
+
 function formFromService(s: Service): FormState {
   return {
     name: s.name,
@@ -134,8 +149,7 @@ function formFromService(s: Service): FormState {
     duration: s.duration,
     iconName: s.iconName ?? "",
     categoryId: s.categoryId ?? "",
-    availableDays: s.availableDays ? parseDays(s.availableDays) : DEFAULT_DAYS,
-    timeSlots: s.timeSlots ? parseTimes(s.timeSlots) : DEFAULT_TIMES,
+    daySlots: (s.availableDays && s.timeSlots) ? parseDaySlots(s.availableDays, s.timeSlots) : { ...DEFAULT_DAY_SLOTS },
   };
 }
 
@@ -149,7 +163,7 @@ export default function ServiceManager() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [newTime, setNewTime] = useState("");
+  const [newTimes, setNewTimes] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{ msg: string; icon: "home" | "star" } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Service | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -182,14 +196,14 @@ export default function ServiceManager() {
   const openCreate = () => {
     setForm(EMPTY_FORM);
     setEditId(null);
-    setNewTime("");
+    setNewTimes({});
     setModal("create");
   };
 
   const openEdit = (s: Service) => {
     setForm(formFromService(s));
     setEditId(s.id);
-    setNewTime("");
+    setNewTimes({});
     setModal("edit");
   };
 
@@ -203,7 +217,9 @@ export default function ServiceManager() {
     if (!form.description.trim()) missing.push("Description (English)");
     if (!form.descriptionAr.trim()) missing.push("Description (Arabic)");
     if (!form.price && form.price !== 0) missing.push("Price");
+    if (!form.duration) missing.push("Duration");
     if (!form.categoryId) missing.push("Category");
+    if (Object.keys(form.daySlots).length === 0) missing.push("Available Days & Time Slots");
     if (missing.length > 0) { setErrors(missing); return; }
     setErrors([]);
     setSaving(true);
@@ -222,8 +238,12 @@ export default function ServiceManager() {
       duration: form.duration,
       iconName: form.iconName,
       categoryId: form.categoryId || null,
-      availableDays: form.availableDays.slice().sort((a, b) => a - b).join(","),
-      timeSlots: sortTimes(form.timeSlots).join(","),
+      availableDays: Object.keys(form.daySlots).sort((a, b) => Number(a) - Number(b)).join(","),
+      timeSlots: JSON.stringify(
+        Object.fromEntries(
+          Object.entries(form.daySlots).map(([day, times]) => [day, sortTimes(times)])
+        )
+      ),
     };
     try {
       const res = await fetch(url, {
@@ -308,29 +328,28 @@ export default function ServiceManager() {
 
   // Day toggle
   const toggleDay = (day: number) => {
-    setForm((prev) => ({
-      ...prev,
-      availableDays: prev.availableDays.includes(day)
-        ? prev.availableDays.filter((d) => d !== day)
-        : [...prev.availableDays, day],
-    }));
+    setForm((prev) => {
+      const key = String(day);
+      const next = { ...prev.daySlots };
+      if (next[key]) { delete next[key]; } else { next[key] = [...DEFAULT_TIMES]; }
+      return { ...prev, daySlots: next };
+    });
   };
 
-  // Time slot management
-  const addTime = () => {
-    const t = newTime.trim();
-    if (!t || form.timeSlots.includes(t)) return;
+  const addTimeForDay = (day: string) => {
+    const t = (newTimes[day] ?? "").trim();
+    if (!t || (form.daySlots[day] ?? []).includes(t)) return;
     setForm((prev) => ({
       ...prev,
-      timeSlots: sortTimes([...prev.timeSlots, t]),
+      daySlots: { ...prev.daySlots, [day]: sortTimes([...(prev.daySlots[day] ?? []), t]) },
     }));
-    setNewTime("");
+    setNewTimes((prev) => ({ ...prev, [day]: "" }));
   };
 
-  const removeTime = (t: string) => {
+  const removeTimeFromDay = (day: string, t: string) => {
     setForm((prev) => ({
       ...prev,
-      timeSlots: prev.timeSlots.filter((x) => x !== t),
+      daySlots: { ...prev.daySlots, [day]: (prev.daySlots[day] ?? []).filter((x) => x !== t) },
     }));
   };
 
@@ -685,44 +704,15 @@ export default function ServiceManager() {
                 </label>
               </div>
 
-              {/* ── Icon picker ─────────────────────────────────────────── */}
+              {/* ── Schedule: Days & Time Slots ─────────────────────── */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-2">
-                  Icon
+                  Available Days & Time Slots
                 </label>
-                <div className="grid grid-cols-6 gap-2">
-                  {ICON_OPTIONS.map(({ name, Icon }) => {
-                    const selected = form.iconName === name;
-                    return (
-                      <button
-                        key={name}
-                        type="button"
-                        onClick={() =>
-                          setForm({ ...form, iconName: selected ? "" : name })
-                        }
-                        title={name}
-                        className={`flex flex-col items-center justify-center gap-1 rounded-xl min-h-[44px] min-w-[44px] p-1.5 text-[10px] font-semibold leading-tight transition-all duration-150 cursor-pointer border ${
-                          selected
-                            ? "bg-primary text-white border-primary"
-                            : "bg-pastel-pink text-primary border-transparent hover:bg-primary/20"
-                        }`}
-                      >
-                        <Icon size={16} aria-hidden="true" />
-                        <span className="truncate w-full text-center">{name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ── Available Days ───────────────────────────────────────── */}
-              <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-2">
-                  Available Days
-                </label>
-                <div className="flex gap-1.5 flex-wrap">
+                <p className="text-xs text-muted mb-3">Select days, then set time slots for each day.</p>
+                <div className="flex gap-1.5 flex-wrap mb-4">
                   {DAY_LABELS.map((label, dayIndex) => {
-                    const active = form.availableDays.includes(dayIndex);
+                    const active = !!form.daySlots[String(dayIndex)];
                     return (
                       <button
                         key={dayIndex}
@@ -739,50 +729,69 @@ export default function ServiceManager() {
                     );
                   })}
                 </div>
+
+                {/* Per-day time slots */}
+                <div className="space-y-3">
+                  {DAY_LABELS.map((label, dayIndex) => {
+                    const key = String(dayIndex);
+                    const slots = form.daySlots[key];
+                    if (!slots) return null;
+                    return (
+                      <div key={dayIndex} className="bg-background border border-border rounded-2xl p-4">
+                        <p className="text-xs font-bold text-glam-text mb-2">{label}</p>
+                        {slots.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-2.5">
+                            {slots.map((t) => (
+                              <span key={t} className="inline-flex items-center gap-1 bg-pastel-pink text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
+                                {t}
+                                <button type="button" onClick={() => removeTimeFromDay(key, t)} aria-label={`Remove ${t}`}
+                                  className="text-primary/50 hover:text-primary transition-colors cursor-pointer">
+                                  <X size={11} aria-hidden="true" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <input type="time" value={newTimes[key] ?? ""}
+                            onChange={(e) => setNewTimes((prev) => ({ ...prev, [key]: e.target.value }))}
+                            className={`${INPUT} flex-1`} />
+                          <button type="button" onClick={() => addTimeForDay(key)} disabled={!(newTimes[key] ?? "").trim()}
+                            className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-40 cursor-pointer">
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* ── Time Slots ───────────────────────────────────────────── */}
+              {/* ── Icon picker (at the bottom) ──────────────────────── */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-2">
-                  Available Times
+                  Icon
                 </label>
-                {/* Existing chips */}
-                {form.timeSlots.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2.5">
-                    {form.timeSlots.map((t) => (
-                      <span
-                        key={t}
-                        className="inline-flex items-center gap-1 bg-pastel-pink text-primary text-xs font-semibold px-2.5 py-1 rounded-full"
+                <div className="grid grid-cols-6 gap-2">
+                  {ICON_OPTIONS.map(({ name, Icon }) => {
+                    const selected = form.iconName === name;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setForm({ ...form, iconName: selected ? "" : name })}
+                        title={name}
+                        className={`flex flex-col items-center justify-center gap-1 rounded-xl min-h-[44px] min-w-[44px] p-1.5 text-[10px] font-semibold leading-tight transition-all duration-150 cursor-pointer border ${
+                          selected
+                            ? "bg-primary text-white border-primary"
+                            : "bg-pastel-pink text-primary border-transparent hover:bg-primary/20"
+                        }`}
                       >
-                        {t}
-                        <button
-                          type="button"
-                          onClick={() => removeTime(t)}
-                          aria-label={`Remove ${t}`}
-                          className="text-primary/50 hover:text-primary transition-colors cursor-pointer"
-                        >
-                          <X size={11} aria-hidden="true" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {/* Add new time */}
-                <div className="flex gap-2">
-                  <input
-                    type="time"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    className={`${INPUT} flex-1`}
-                  />
-                  <button
-                    type="button"
-                    onClick={addTime}
-                    disabled={!newTime}
-                    className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-40 cursor-pointer"
-                  >
-                    Add
-                  </button>
+                        <Icon size={16} aria-hidden="true" />
+                        <span className="truncate w-full text-center">{name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

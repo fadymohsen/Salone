@@ -143,16 +143,48 @@ function BookingFormContent() {
     }
   }, [selectedCategory, services]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [daySlotMap, setDaySlotMap] = useState<Record<string, string[]>>({});
+
   useEffect(() => {
     if (!form.serviceType || services.length === 0) return;
     const matched = services.find(s => s.name === form.serviceType);
     if (!matched) return;
     const parsedDays = matched.availableDays ? matched.availableDays.split(",").map(d => parseInt(d.trim(), 10)).filter(n => !isNaN(n)) : [];
-    const parsedTimes = matched.timeSlots ? matched.timeSlots.split(",").map(t => t.trim()).filter(Boolean) : DEFAULT_TIMES;
     setAvailableDays(parsedDays);
-    setAvailableTimes(parsedTimes);
-    setForm(prev => ({ ...prev, bookingTime: parsedTimes.includes(prev.bookingTime) ? prev.bookingTime : "" }));
-  }, [form.serviceType, services]);
+
+    // Parse per-day time slots (JSON) or legacy CSV
+    let dsMap: Record<string, string[]> = {};
+    try {
+      const parsed = JSON.parse(matched.timeSlots);
+      if (typeof parsed === "object" && !Array.isArray(parsed)) dsMap = parsed;
+    } catch { /* legacy CSV */ }
+    if (Object.keys(dsMap).length === 0) {
+      const times = matched.timeSlots ? matched.timeSlots.split(",").map(t => t.trim()).filter(Boolean) : DEFAULT_TIMES;
+      for (const d of parsedDays) dsMap[String(d)] = times;
+    }
+    setDaySlotMap(dsMap);
+
+    // Set times based on currently selected date's day
+    if (form.bookingDate) {
+      const dow = new Date(form.bookingDate + "T00:00:00").getDay();
+      const dayTimes = dsMap[String(dow)] ?? DEFAULT_TIMES;
+      setAvailableTimes(dayTimes);
+      setForm(prev => ({ ...prev, bookingTime: dayTimes.includes(prev.bookingTime) ? prev.bookingTime : "" }));
+    } else {
+      // Show all unique times as fallback
+      const allTimes = [...new Set(Object.values(dsMap).flat())].sort();
+      setAvailableTimes(allTimes.length > 0 ? allTimes : DEFAULT_TIMES);
+    }
+  }, [form.serviceType, services]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update available times when date changes
+  useEffect(() => {
+    if (!form.bookingDate || Object.keys(daySlotMap).length === 0) return;
+    const dow = new Date(form.bookingDate + "T00:00:00").getDay();
+    const dayTimes = daySlotMap[String(dow)] ?? DEFAULT_TIMES;
+    setAvailableTimes(dayTimes);
+    setForm(prev => ({ ...prev, bookingTime: dayTimes.includes(prev.bookingTime) ? prev.bookingTime : "" }));
+  }, [form.bookingDate, daySlotMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!form.bookingDate || !form.bookingTime) return; setStep("payment"); };
 
