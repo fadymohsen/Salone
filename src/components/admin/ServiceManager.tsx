@@ -10,6 +10,8 @@ import type { LucideIcon } from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+type CategoryOption = { id: string; name: string; nameAr: string | null };
+
 type Service = {
   id: string;
   name: string;
@@ -23,6 +25,7 @@ type Service = {
   sortOrder: number;
   availableDays: string;
   timeSlots: string;
+  categoryId: string | null;
 };
 
 type FormState = {
@@ -34,6 +37,7 @@ type FormState = {
   isActive: boolean;
   popular: boolean;
   iconName: string;
+  categoryId: string;
   availableDays: number[];
   timeSlots: string[];
 };
@@ -52,6 +56,7 @@ const EMPTY_FORM: FormState = {
   isActive: true,
   popular: false,
   iconName: "",
+  categoryId: "",
   availableDays: DEFAULT_DAYS,
   timeSlots: DEFAULT_TIMES,
 };
@@ -116,6 +121,7 @@ function formFromService(s: Service): FormState {
     isActive: s.isActive,
     popular: s.popular,
     iconName: s.iconName ?? "",
+    categoryId: s.categoryId ?? "",
     availableDays: s.availableDays ? parseDays(s.availableDays) : DEFAULT_DAYS,
     timeSlots: s.timeSlots ? parseTimes(s.timeSlots) : DEFAULT_TIMES,
   };
@@ -125,6 +131,7 @@ function formFromService(s: Service): FormState {
 
 export default function ServiceManager() {
   const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -145,7 +152,17 @@ export default function ServiceManager() {
     }
   };
 
-  useEffect(() => { fetchServices(); }, []);
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/admin/categories");
+      const data = await res.json();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch {
+      setCategories([]);
+    }
+  };
+
+  useEffect(() => { fetchServices(); fetchCategories(); }, []);
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -177,6 +194,7 @@ export default function ServiceManager() {
       isActive: form.isActive,
       popular: form.popular,
       iconName: form.iconName,
+      categoryId: form.categoryId || null,
       availableDays: form.availableDays.slice().sort((a, b) => a - b).join(","),
       timeSlots: sortTimes(form.timeSlots).join(","),
     };
@@ -469,6 +487,18 @@ export default function ServiceManager() {
                   placeholder="150"
                   className={INPUT}
                 />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Category</label>
+                <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                  className={`${INPUT} appearance-none cursor-pointer`}>
+                  <option value="">— No category —</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}{c.nameAr ? ` / ${c.nameAr}` : ""}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Checkboxes */}

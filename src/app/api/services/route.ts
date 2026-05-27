@@ -16,6 +16,8 @@ export async function GET() {
       iconName: true,
       availableDays: true,
       timeSlots: true,
+      categoryId: true,
+      category: { select: { id: true, name: true, nameAr: true } },
     },
   });
   return NextResponse.json(services);

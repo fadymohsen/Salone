@@ -67,6 +67,16 @@ model Booking {
   @@index([status])
 }
 
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  nameAr    String?
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  services  Service[]
+}
+
 model Service {
   id            String         @id @default(uuid())
   name          String         @unique
@@ -80,8 +90,12 @@ model Service {
   iconName      String?
   availableDays String         @default("1,2,3,4,5,6")
   timeSlots     String         @default("11:00,12:30,14:00,15:30,17:00,18:30,20:00")
+  categoryId    String?
   createdAt     DateTime       @default(now())
+  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   galleryImages GalleryImage[]
+
+  @@index([categoryId])
 }
 
 model GalleryImage {

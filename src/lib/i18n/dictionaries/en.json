@@ -152,8 +152,10 @@
     "whatsappPhone": "WhatsApp / Phone",
     "phonePlaceholder": "010XXXXXXXX",
     "emailPlaceholder": "you@example.com",
+    "category": "Category",
     "service": "Service",
     "loadingServices": "Loading services…",
+    "promoCode": "Promo Code",
     "date": "Date",
     "selected": "Selected",
     "preferredTime": "Preferred Time",
@@ -257,6 +259,7 @@
     "orders": "Orders",
     "analytics": "Analytics",
     "promos": "Promo Codes",
+    "categories": "Categories",
     "services": "Services",
     "gallery": "Gallery",
     "points": "Points & Rewards",
@@ -292,6 +295,10 @@
     "ordersPage": {
       "title": "Orders",
       "subtitle": "Search, filter, and manage all bookings"
+    },
+    "categoriesPage": {
+      "title": "Categories",
+      "subtitle": "Organize your services into categories"
     },
     "servicesPage": {
       "title": "Services",

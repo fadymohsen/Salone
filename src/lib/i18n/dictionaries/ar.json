@@ -152,8 +152,10 @@
     "whatsappPhone": "واتساب / الهاتف",
     "phonePlaceholder": "010XXXXXXXX",
     "emailPlaceholder": "you@example.com",
+    "category": "الفئة",
     "service": "الخدمة",
     "loadingServices": "جاري تحميل الخدمات…",
+    "promoCode": "كود الخصم",
     "date": "التاريخ",
     "selected": "المحدد",
     "preferredTime": "الوقت المفضل",
@@ -257,6 +259,7 @@
     "orders": "الطلبات",
     "analytics": "التحليلات",
     "promos": "أكواد الخصم",
+    "categories": "الفئات",
     "services": "الخدمات",
     "gallery": "المعرض",
     "points": "النقاط والمكافآت",
@@ -292,6 +295,10 @@
     "ordersPage": {
       "title": "الطلبات",
       "subtitle": "ابحث وفلتر وأدِر جميع الحجوزات"
+    },
+    "categoriesPage": {
+      "title": "الفئات",
+      "subtitle": "نظّم خدماتك في فئات"
     },
     "servicesPage": {
       "title": "الخدمات",

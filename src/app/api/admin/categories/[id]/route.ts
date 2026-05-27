@@ -13,26 +13,18 @@ export async function PUT(
   const body = await request.json();
 
   try {
-    const service = await prisma.service.update({
+    const category = await prisma.category.update({
       where: { id },
       data: {
         name: body.name,
         nameAr: body.nameAr || null,
-        description: body.description || null,
-        descriptionAr: body.descriptionAr || null,
-        price: Number(body.price),
-        isActive: Boolean(body.isActive),
-        popular: Boolean(body.popular),
-        iconName: body.iconName || null,
-        categoryId: body.categoryId !== undefined ? (body.categoryId || null) : undefined,
+        isActive: body.isActive !== undefined ? Boolean(body.isActive) : undefined,
         sortOrder: body.sortOrder != null ? Number(body.sortOrder) : undefined,
-        availableDays: body.availableDays ?? undefined,
-        timeSlots: body.timeSlots ?? undefined,
       },
     });
-    return NextResponse.json(service);
+    return NextResponse.json(category);
   } catch {
-    return NextResponse.json({ error: "Service not found." }, { status: 404 });
+    return NextResponse.json({ error: "Category not found." }, { status: 404 });
   }
 }
 
@@ -45,9 +37,9 @@ export async function DELETE(
 
   const { id } = await params;
   try {
-    await prisma.service.delete({ where: { id } });
+    await prisma.category.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: "Service not found." }, { status: 404 });
+    return NextResponse.json({ error: "Category not found." }, { status: 404 });
   }
 }
