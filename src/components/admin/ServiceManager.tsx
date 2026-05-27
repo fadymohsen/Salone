@@ -746,40 +746,87 @@ export default function ServiceManager() {
                     const range = form.dayRanges[key];
                     if (!range) return null;
                     const slots = generateSlots(range.start, range.end, form.duration || 60);
-                    const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
-                      const m = 7 * 60 + i * 30;
-                      return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-                    });
                     const fmt = (t: string) => {
                       const [h, m] = t.split(":").map(Number);
                       return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
                     };
+                    const parse12 = (val: string): { h: number; m: number; p: string } => {
+                      const [hh, mm] = val.split(":").map(Number);
+                      return { h: hh % 12 || 12, m: mm, p: hh >= 12 ? "PM" : "AM" };
+                    };
+                    const to24 = (h: number, m: number, p: string): string => {
+                      let h24 = p === "AM" ? (h === 12 ? 0 : h) : (h === 12 ? 12 : h + 12);
+                      return `${String(h24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                    };
+                    const startP = parse12(range.start);
+                    const endP = parse12(range.end);
+                    const invalid = range.end <= range.start;
+                    const HOURS = [1,2,3,4,5,6,7,8,9,10,11,12];
+                    const MINUTES = [0, 15, 30, 45];
+
+                    const updateFrom = (h?: number, m?: number, p?: string) => {
+                      const nh = h ?? startP.h, nm = m ?? startP.m, np = p ?? startP.p;
+                      const val = to24(nh, nm, np);
+                      updateDayRange(key, "start", val);
+                      if (range.end <= val) updateDayRange(key, "end", "");
+                    };
+                    const updateTo = (h?: number, m?: number, p?: string) => {
+                      const nh = h ?? endP.h, nm = m ?? endP.m, np = p ?? endP.p;
+                      const val = to24(nh, nm, np);
+                      if (val > range.start) updateDayRange(key, "end", val);
+                    };
+
+                    const clockSelect = (label2: string, value: number | string, options: (number | string)[], onChange: (v: number | string) => void, width: string) => (
+                      <div className={width}>
+                        <div className="flex flex-col items-center gap-1 bg-white border border-border rounded-xl p-1.5 max-h-[120px] overflow-y-auto">
+                          {options.map((opt) => (
+                            <button key={opt} type="button" onClick={() => onChange(opt)}
+                              className={`w-full py-1.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer ${
+                                String(value) === String(opt)
+                                  ? "bg-primary text-white"
+                                  : "text-glam-text hover:bg-pastel-pink hover:text-primary"
+                              }`}>
+                              {typeof opt === "number" ? String(opt).padStart(2, "0") : opt}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-center text-xs text-muted mt-1">{label2}</p>
+                      </div>
+                    );
+
                     return (
                       <div key={dayIndex} className="bg-background border border-border rounded-2xl p-4">
-                        <p className="text-xs font-bold text-glam-text mb-3">{label}</p>
-                        <div className="grid grid-cols-2 gap-3 mb-3">
+                        <p className="text-xs font-bold text-glam-text mb-3 flex items-center gap-2">
+                          <Clock size={12} className="text-primary" aria-hidden="true" />
+                          {label}
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          {/* FROM */}
                           <div>
-                            <label className="block text-xs text-muted mb-1.5">From</label>
-                            <div className="relative">
-                              <select value={range.start} onChange={(e) => updateDayRange(key, "start", e.target.value)}
-                                className={`${INPUT} appearance-none cursor-pointer pe-8 font-semibold text-primary`}>
-                                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{fmt(t)}</option>)}
-                              </select>
-                              <Clock size={13} className="absolute end-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none" aria-hidden="true" />
+                            <label className="block text-xs font-bold text-muted mb-2">From</label>
+                            <div className="flex gap-1.5">
+                              {clockSelect("Hr", startP.h, HOURS, (v) => updateFrom(v as number), "flex-1")}
+                              {clockSelect("Min", startP.m, MINUTES, (v) => updateFrom(undefined, v as number), "flex-1")}
+                              {clockSelect("", startP.p, ["AM", "PM"], (v) => updateFrom(undefined, undefined, v as string), "w-12")}
                             </div>
                           </div>
+                          {/* TO */}
                           <div>
-                            <label className="block text-xs text-muted mb-1.5">To</label>
-                            <div className="relative">
-                              <select value={range.end} onChange={(e) => updateDayRange(key, "end", e.target.value)}
-                                className={`${INPUT} appearance-none cursor-pointer pe-8 font-semibold text-primary`}>
-                                {TIME_OPTIONS.filter(t => t > range.start).map((t) => <option key={t} value={t}>{fmt(t)}</option>)}
-                              </select>
-                              <Clock size={13} className="absolute end-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none" aria-hidden="true" />
+                            <label className="block text-xs font-bold text-muted mb-2">To</label>
+                            <div className="flex gap-1.5">
+                              {clockSelect("Hr", endP.h, HOURS, (v) => updateTo(v as number), "flex-1")}
+                              {clockSelect("Min", endP.m, MINUTES, (v) => updateTo(undefined, v as number), "flex-1")}
+                              {clockSelect("", endP.p, ["AM", "PM"], (v) => updateTo(undefined, undefined, v as string), "w-12")}
                             </div>
                           </div>
                         </div>
-                        {slots.length > 0 ? (
+                        {invalid && range.end && (
+                          <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-3 flex items-center gap-2">
+                            <X size={12} className="text-red-500 shrink-0" aria-hidden="true" />
+                            <p className="text-xs font-medium text-red-500">&quot;To&quot; time must be after &quot;From&quot; time</p>
+                          </div>
+                        )}
+                        {!invalid && slots.length > 0 ? (
                           <div>
                             <p className="text-xs text-muted mb-1.5">{slots.length} slots generated:</p>
                             <div className="flex flex-wrap gap-1.5">
@@ -788,9 +835,9 @@ export default function ServiceManager() {
                               ))}
                             </div>
                           </div>
-                        ) : (
+                        ) : !invalid ? (
                           <p className="text-xs text-red-400">No slots fit in this range{form.duration ? ` with ${form.duration} min duration` : ". Select a duration first"}.</p>
-                        )}
+                        ) : null}
                       </div>
                     );
                   })}
