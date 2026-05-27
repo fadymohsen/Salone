@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   Sparkles, Gem, Star, Palette, Eye, Scissors, Heart, Wand2,
   Brush, Crown, Leaf, Sun, Zap, Droplets, Flower2, Ribbon,
-  MapPin, AtSign, MessageCircle, ArrowRight,
+  MapPin, Instagram, Facebook, MessageCircle, ArrowRight,
   CheckCircle2, ChevronRight, Gift, Trophy, Ticket,
 } from "lucide-react";
 import FaqAccordion from "@/components/FaqAccordion";
@@ -381,10 +381,14 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
                   <MessageCircle size={13} aria-hidden="true" />
                   {t.common.whatsappUs}
                 </a>
-                <a href="https://instagram.com/glowbook.eg" className="inline-flex items-center gap-2 text-white/40 hover:text-primary text-xs font-medium transition-colors duration-150 cursor-pointer w-fit" aria-label="Follow on Instagram">
-                  <AtSign size={13} aria-hidden="true" />
-                  @glowbook.eg
-                </a>
+                <div className="flex items-center gap-3">
+                  <a href="https://instagram.com/veliq.co" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-primary transition-colors duration-150 cursor-pointer" aria-label="Follow on Instagram">
+                    <Instagram size={18} aria-hidden="true" />
+                  </a>
+                  <a href="https://facebook.com/veliq.co" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-primary transition-colors duration-150 cursor-pointer" aria-label="Follow on Facebook">
+                    <Facebook size={18} aria-hidden="true" />
+                  </a>
+                </div>
               </div>
             </div>
 
