@@ -142,8 +142,8 @@ export default function CategoryManager() {
                   placeholder="Nails" className={INPUT} />
               </div>
               <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Name (Arabic)</label>
-                <input type="text" dir="rtl" value={form.nameAr} onChange={(e) => setForm({ ...form, nameAr: e.target.value })}
+                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Name (Arabic) *</label>
+                <input type="text" required dir="rtl" value={form.nameAr} onChange={(e) => setForm({ ...form, nameAr: e.target.value })}
                   placeholder="أظافر" className={INPUT} />
               </div>
               <div className="flex gap-3 pt-1">

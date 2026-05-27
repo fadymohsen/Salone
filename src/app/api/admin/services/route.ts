@@ -34,6 +34,7 @@ export async function POST(request: Request) {
         descriptionAr: descriptionAr || null,
         price: Number(price),
         popular: Boolean(popular),
+        featured: false,
         iconName: iconName || null,
         categoryId: categoryId || null,
         sortOrder: count,

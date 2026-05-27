@@ -23,6 +23,7 @@ export async function PUT(
         price: Number(body.price),
         isActive: Boolean(body.isActive),
         popular: Boolean(body.popular),
+        featured: body.featured !== undefined ? Boolean(body.featured) : undefined,
         iconName: body.iconName || null,
         categoryId: body.categoryId !== undefined ? (body.categoryId || null) : undefined,
         sortOrder: body.sortOrder != null ? Number(body.sortOrder) : undefined,

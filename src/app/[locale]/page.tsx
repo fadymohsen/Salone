@@ -168,48 +168,50 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           <p className="text-muted mt-3 max-w-xs mx-auto text-sm leading-relaxed">{t.services.subtitle}</p>
         </div>
 
-        {grouped.length > 0 ? (
-          <div className="space-y-12">
-            {grouped.map((group) => (
-              <div key={group.categoryName}>
-                {group.categoryName && (
-                  <h3 className="font-serif text-xl sm:text-2xl font-bold text-glam-text mb-6">
-                    {locale === "ar" ? (group.categoryNameAr || group.categoryName) : group.categoryName}
-                  </h3>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-                  {group.services.map((s) => {
-                    const Icon = s.iconName ? (ICON_MAP[s.iconName] ?? Sparkles) : Sparkles;
-                    return (
-                      <div key={s.id} className="group relative bg-white rounded-3xl p-6 border border-border hover:border-primary/30 hover:shadow-xl hover:shadow-primary/8 transition-all duration-300 flex flex-col">
-                        {s.popular && (
-                          <span className="absolute top-4 end-4 text-xs font-bold text-primary bg-pastel-pink px-2.5 py-1 rounded-full">
-                            {t.services.mostPopular}
-                          </span>
-                        )}
-                        <div className="w-11 h-11 rounded-2xl bg-pastel-pink flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-colors duration-200">
-                          <Icon size={20} className="text-primary" aria-hidden="true" strokeWidth={1.75} />
-                        </div>
-                        <h3 className="font-serif text-base font-semibold text-glam-text mb-2">{locale === "ar" ? (s.nameAr || s.name) : s.name}</h3>
-                        <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{locale === "ar" ? (s.descriptionAr || s.description || "") : (s.description ?? "")}</p>
-                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
-                          <span className="text-sm font-bold text-primary">{t.services.from} {s.price} {t.common.egp}</span>
-                          <Link
-                            href={`${l("/book")}?service=${encodeURIComponent(s.name)}`}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-pastel-pink px-3.5 py-2 rounded-full hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
-                            aria-label={`${t.services.book} ${s.name}`}
-                          >
-                            {t.services.book} <ArrowRight size={11} aria-hidden="true" />
-                          </Link>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+        {services ? (() => {
+          const featured = services.filter((s) => s.featured);
+          const displayServices = featured.length > 0 ? featured.slice(0, 6) : services.slice(0, 6);
+          return (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+              {displayServices.map((s) => {
+                const Icon = s.iconName ? (ICON_MAP[s.iconName] ?? Sparkles) : Sparkles;
+                return (
+                  <div key={s.id} className="group relative bg-white rounded-3xl p-6 border border-border hover:border-primary/30 hover:shadow-xl hover:shadow-primary/8 transition-all duration-300 flex flex-col">
+                    {s.popular && (
+                      <span className="absolute top-4 end-4 text-xs font-bold text-primary bg-pastel-pink px-2.5 py-1 rounded-full">
+                        {t.services.mostPopular}
+                      </span>
+                    )}
+                    <div className="w-11 h-11 rounded-2xl bg-pastel-pink flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-colors duration-200">
+                      <Icon size={20} className="text-primary" aria-hidden="true" strokeWidth={1.75} />
+                    </div>
+                    <h3 className="font-serif text-base font-semibold text-glam-text mb-2">{locale === "ar" ? (s.nameAr || s.name) : s.name}</h3>
+                    <p className="text-sm text-muted leading-relaxed mb-5 flex-1">{locale === "ar" ? (s.descriptionAr || s.description || "") : (s.description ?? "")}</p>
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
+                      <span className="text-sm font-bold text-primary">{t.services.from} {s.price} {t.common.egp}</span>
+                      <Link
+                        href={`${l("/book")}?service=${encodeURIComponent(s.name)}`}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-pastel-pink px-3.5 py-2 rounded-full hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
+                        aria-label={`${t.services.book} ${s.name}`}
+                      >
+                        {t.services.book} <ArrowRight size={11} aria-hidden="true" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {services.length > displayServices.length && (
+              <div className="text-center mt-10">
+                <Link href={l("/services")} className="inline-flex items-center gap-2 bg-white border border-border text-glam-text font-bold px-8 py-3.5 rounded-2xl hover:border-primary hover:text-primary transition-all duration-200 cursor-pointer text-sm shadow-sm">
+                  {t.services.viewAll} <ArrowRight size={14} aria-hidden="true" />
+                </Link>
               </div>
-            ))}
-          </div>
-        ) : (
+            )}
+          </>
+          );
+        })() : (
           <div className="text-center py-16 bg-white rounded-3xl border border-border">
             <Sparkles size={32} className="text-muted/30 mx-auto mb-3" strokeWidth={1.5} aria-hidden="true" />
             <p className="text-sm text-muted mb-4">{t.services.comingSoon}</p>

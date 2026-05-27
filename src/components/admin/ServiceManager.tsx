@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import {
-  Plus, Pencil, Trash2, X, Loader2, Star, Power, Tag,
+  Plus, Pencil, Trash2, X, Loader2, Star, Power, Tag, Home,
   Sparkles, Gem, Palette, Eye, Scissors, Heart, Wand2, Brush,
   Crown, Leaf, Sun, Zap, Droplets, Flower2, Ribbon,
 } from "lucide-react";
@@ -21,6 +21,7 @@ type Service = {
   price: number;
   isActive: boolean;
   popular: boolean;
+  featured: boolean;
   iconName: string | null;
   sortOrder: number;
   availableDays: string;
@@ -36,6 +37,7 @@ type FormState = {
   price: number;
   isActive: boolean;
   popular: boolean;
+  featured: boolean;
   iconName: string;
   categoryId: string;
   availableDays: number[];
@@ -55,6 +57,7 @@ const EMPTY_FORM: FormState = {
   price: 0,
   isActive: true,
   popular: false,
+  featured: false,
   iconName: "",
   categoryId: "",
   availableDays: DEFAULT_DAYS,
@@ -120,6 +123,7 @@ function formFromService(s: Service): FormState {
     price: s.price,
     isActive: s.isActive,
     popular: s.popular,
+    featured: s.featured,
     iconName: s.iconName ?? "",
     categoryId: s.categoryId ?? "",
     availableDays: s.availableDays ? parseDays(s.availableDays) : DEFAULT_DAYS,
@@ -138,6 +142,7 @@ export default function ServiceManager() {
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [newTime, setNewTime] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -193,6 +198,7 @@ export default function ServiceManager() {
       price: Number(form.price),
       isActive: form.isActive,
       popular: form.popular,
+      featured: form.featured,
       iconName: form.iconName,
       categoryId: form.categoryId || null,
       availableDays: form.availableDays.slice().sort((a, b) => a - b).join(","),
@@ -230,6 +236,34 @@ export default function ServiceManager() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
     await fetch(`/api/admin/services/${id}`, { method: "DELETE" });
+    fetchServices();
+  };
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const toggleFeatured = async (s: Service) => {
+    const featuredCount = services.filter((sv) => sv.featured).length;
+    if (s.featured) {
+      // Trying to un-feature
+      if (featuredCount <= 3) {
+        showToast("You must keep at least 3 featured services on the homepage.");
+        return;
+      }
+    } else {
+      // Trying to feature
+      if (featuredCount >= 6) {
+        showToast("Maximum 6 featured services allowed on the homepage.");
+        return;
+      }
+    }
+    await fetch(`/api/admin/services/${s.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...s, featured: !s.featured }),
+    });
     fetchServices();
   };
 
@@ -287,11 +321,12 @@ export default function ServiceManager() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
             <span className="w-9" />
             <span>Service</span>
             <span>Price</span>
             <span>Popular</span>
+            <span>Home</span>
             <span>Status</span>
             <span>Actions</span>
           </div>
@@ -304,7 +339,7 @@ export default function ServiceManager() {
               className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100"
             >
               {/* Desktop row */}
-              <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-3.5 items-center">
+              <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px_120px_100px] gap-3 px-5 py-3.5 items-center">
                 <div className="w-9 h-9 rounded-xl bg-pastel-pink flex items-center justify-center shrink-0">
                   <IconComp size={16} className="text-primary" aria-hidden="true" />
                 </div>
@@ -320,6 +355,17 @@ export default function ServiceManager() {
                     <Star size={13} className="text-yellow-500 fill-yellow-400" aria-label="Popular" />
                   )}
                 </div>
+                <button
+                  onClick={() => toggleFeatured(s)}
+                  title={s.featured ? "Remove from homepage" : "Show on homepage"}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+                    s.featured
+                      ? "bg-primary text-white"
+                      : "bg-background text-muted border border-border hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  <Home size={13} aria-hidden="true" />
+                </button>
                 <button
                   onClick={() => toggleActive(s)}
                   className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all duration-150 w-fit cursor-pointer ${
@@ -359,6 +405,14 @@ export default function ServiceManager() {
                     {s.price} EGP{s.popular ? " · Popular" : ""}
                   </p>
                 </div>
+                <button
+                  onClick={() => toggleFeatured(s)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+                    s.featured ? "bg-primary text-white" : "bg-background text-muted border border-border"
+                  }`}
+                >
+                  <Home size={12} aria-hidden="true" />
+                </button>
                 <button
                   onClick={() => toggleActive(s)}
                   className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-full border cursor-pointer transition-all duration-150 ${
@@ -432,10 +486,11 @@ export default function ServiceManager() {
               {/* Name (Arabic) */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
-                  Name (Arabic)
+                  Name (Arabic) *
                 </label>
                 <input
                   type="text"
+                  required
                   dir="rtl"
                   value={form.nameAr}
                   onChange={(e) => setForm({ ...form, nameAr: e.target.value })}
@@ -447,10 +502,11 @@ export default function ServiceManager() {
               {/* Description (English) */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
-                  Description (English)
+                  Description (English) *
                 </label>
                 <input
                   type="text"
+                  required
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Short description…"
@@ -461,10 +517,11 @@ export default function ServiceManager() {
               {/* Description (Arabic) */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
-                  Description (Arabic)
+                  Description (Arabic) *
                 </label>
                 <input
                   type="text"
+                  required
                   dir="rtl"
                   value={form.descriptionAr}
                   onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
@@ -491,10 +548,10 @@ export default function ServiceManager() {
 
               {/* Category */}
               <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Category</label>
-                <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Category *</label>
+                <select required value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
                   className={`${INPUT} appearance-none cursor-pointer`}>
-                  <option value="">— No category —</option>
+                  <option value="">— Select category —</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}{c.nameAr ? ` / ${c.nameAr}` : ""}</option>
                   ))}
@@ -651,6 +708,18 @@ export default function ServiceManager() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Branded Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-[fadeInUp_0.2s_ease-out]">
+          <div className="flex items-center gap-3 bg-glam-text text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-black/20 max-w-sm">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0">
+              <Home size={14} aria-hidden="true" />
+            </div>
+            <p className="text-sm font-medium">{toast}</p>
           </div>
         </div>
       )}
