@@ -150,17 +150,32 @@ export default async function LandingPage() {
 
           </div>
 
-          {/* ── Right: decorative image card (desktop only) ── */}
-          <div className="hidden md:flex justify-center relative">
-            <div className="relative w-[340px] h-[460px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/15">
+          {/* ── Right: decorative image card ── */}
+          <div className="flex justify-center relative mt-4 md:mt-0">
+            {/* Accent ring behind the card */}
+            <div className="absolute -top-6 -right-6 w-[280px] h-[280px] md:w-[360px] md:h-[360px] rounded-full border-2 border-dashed border-primary/15 -z-10" aria-hidden="true" />
+            <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-primary/10 blur-2xl -z-10" aria-hidden="true" />
+
+            <div className="relative w-[280px] h-[380px] md:w-[360px] md:h-[480px] rounded-3xl overflow-hidden shadow-2xl shadow-primary/20 ring-1 ring-white/50">
               <img
-                src="https://images.unsplash.com/photo-1604654894610-df4906b147c0?auto=format&fit=crop&w=700&q=85"
+                src="https://images.unsplash.com/photo-1604654894610-df4906b147c0?auto=format&fit=crop&w=800&q=85"
                 alt="Nail artistry at GlowBook"
-                width={700}
-                height={920}
+                width={800}
+                height={1060}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />
+
+              {/* Floating badge */}
+              <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Sparkles size={18} className="text-primary" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-glam-text leading-tight">Premium Artistry</p>
+                  <p className="text-xs text-muted">Handcrafted with love in Cairo</p>
+                </div>
+              </div>
             </div>
           </div>
 
