@@ -45,24 +45,25 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
     <div className="min-h-screen flex flex-col bg-background">
 
       {/* HEADER */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="font-serif text-xl font-bold text-primary tracking-tight">{t.common.brand}</span>
+      <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-2xl border-b border-border/60 shadow-sm shadow-black/[0.03]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+          <Link href={l("/")} className="flex items-center gap-2 group cursor-pointer">
+            <span className="font-serif text-xl sm:text-2xl font-bold text-primary tracking-tight group-hover:text-secondary transition-colors duration-200">{t.common.brand}</span>
+          </Link>
 
-          <nav className="hidden sm:flex items-center gap-8 text-sm font-medium text-glam-text/70" aria-label="Main navigation">
-          </nav>
-
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LangSwitcher locale={locale} />
             <Link
               href={l("/account/dashboard")}
-              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-glam-text/70 hover:text-primary transition-colors duration-150 cursor-pointer"
+              className="inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-full border border-border/80 text-glam-text/60 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+              aria-label={t.common.myAccount}
             >
-              {t.common.myAccount}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:hidden" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span className="hidden sm:inline text-sm font-semibold">{t.common.myAccount}</span>
             </Link>
             <Link
               href={l("/book")}
-              className="inline-flex items-center gap-1.5 bg-primary text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:bg-secondary transition-colors duration-200 shadow-md shadow-primary/25 cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-primary text-white font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm hover:bg-secondary hover:shadow-lg hover:shadow-primary/30 transition-all duration-200 shadow-md shadow-primary/20 cursor-pointer active:scale-[0.97]"
             >
               {t.common.bookNow}
               <ChevronRight size={14} strokeWidth={2.5} aria-hidden="true" />
