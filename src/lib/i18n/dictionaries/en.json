@@ -1,0 +1,336 @@
+{
+  "common": {
+    "brand": "GlowBook",
+    "bookNow": "Book Now",
+    "myAccount": "My Account",
+    "signIn": "Sign In",
+    "signOut": "Sign out",
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "optional": "optional",
+    "required": "*",
+    "email": "Email",
+    "password": "Password",
+    "phone": "Phone",
+    "name": "Name",
+    "whatsappUs": "WhatsApp Us",
+    "chatOnWhatsApp": "Chat with us on WhatsApp",
+    "networkError": "Network error. Please try again.",
+    "egp": "EGP"
+  },
+  "nav": {
+    "services": "Services",
+    "howItWorks": "How It Works",
+    "faq": "FAQ"
+  },
+  "hero": {
+    "title1": "Your Nails.",
+    "title2": "Perfected.",
+    "subtitle": "Premium nail artistry & beauty treatments in Cairo. Book your slot in under 60 seconds.",
+    "seeServices": "See Services",
+    "perks": [
+      "No deposits, no hidden fees",
+      "Instant confirmation",
+      "Easy reschedule anytime"
+    ],
+    "badgeTitle": "Premium Artistry",
+    "badgeSubtitle": "Handcrafted with love in Cairo"
+  },
+  "services": {
+    "tagline": "What We Offer",
+    "title": "Our Services",
+    "subtitle": "Every look crafted with precision, care, and a love for detail.",
+    "mostPopular": "Most Popular",
+    "from": "From",
+    "book": "Book",
+    "comingSoon": "Services coming soon — check back shortly."
+  },
+  "howItWorks": {
+    "tagline": "Simple Process",
+    "title": "How It Works",
+    "reserveSpot": "Reserve My Spot",
+    "steps": [
+      { "num": "01", "title": "Pick Your Look", "desc": "Browse services and choose the style that speaks to you." },
+      { "num": "02", "title": "Choose Your Slot", "desc": "Select a date and time that works perfectly for you." },
+      { "num": "03", "title": "Show Up & Shine", "desc": "Arrive, relax, and leave looking absolutely flawless." }
+    ]
+  },
+  "testimonials": {
+    "tagline": "Client Love",
+    "title": "What Our Clients Say",
+    "subtitle": "Straight from the people who matter most.",
+    "items": [
+      {
+        "quote": "The glazed donut nails were absolutely perfect! Lasted 3 weeks without a single chip.",
+        "name": "Sara H.",
+        "service": "Glazed Donut Nails"
+      },
+      {
+        "quote": "Super easy to book online and the results were stunning. I've never gotten so many compliments.",
+        "name": "Nadia K.",
+        "service": "French Rose Acrylics"
+      },
+      {
+        "quote": "Best nail experience in Cairo. Clean, professional, and the lash lift was life-changing.",
+        "name": "Mariam R.",
+        "service": "Lash Lift & Glow"
+      }
+    ]
+  },
+  "loyalty": {
+    "tagline": "Rewards Program",
+    "title1": "Earn Points. Get",
+    "title2": "Rewarded.",
+    "subtitle": "Every booking brings you closer to free discounts. Join our loyalty program — it's free and automatic.",
+    "steps": [
+      { "title": "Book & Earn", "desc": "Earn points with every appointment you complete." },
+      { "title": "Hit Your Goal", "desc": "Reach the points threshold and unlock your reward." },
+      { "title": "Get a Coupon", "desc": "Receive an automatic discount on your next visit." }
+    ],
+    "pointsPerBooking": "Points per booking",
+    "pointsToUnlock": "Points to unlock reward",
+    "discountCoupon": "Discount coupon",
+    "createAccount": "Create Free Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in"
+  },
+  "faq": {
+    "tagline": "Got Questions?",
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know before booking.",
+    "stillHaveQuestions": "Still have questions?",
+    "items": [
+      { "q": "How long does a nail appointment take?", "a": "Most services take between 45 minutes to 1.5 hours depending on the complexity. Gel extensions and intricate nail art may take up to 2 hours. We'll always give you a time estimate when you book." },
+      { "q": "Do I need to pay a deposit when booking?", "a": "No! We never charge deposits or hidden fees. You only pay when you arrive at your appointment. Easy and stress-free." },
+      { "q": "Can I reschedule or cancel my booking?", "a": "Absolutely. You can reschedule or cancel anytime through your account dashboard or by messaging us on WhatsApp. We just ask for at least 4 hours notice." },
+      { "q": "What payment methods do you accept?", "a": "We accept cash, Visa, MasterCard, and mobile wallets (Vodafone Cash, InstaPay). Pay however is most convenient for you." },
+      { "q": "How does the loyalty points program work?", "a": "You earn points with every booking. Once you hit the threshold, you automatically receive a discount coupon for your next visit. Create a free account to start earning!" },
+      { "q": "Do you use gel or acrylic products?", "a": "We use premium, salon-grade gel and acrylic products from trusted international brands. All our products are safe, long-lasting, and gentle on natural nails." }
+    ]
+  },
+  "cta": {
+    "limitedSlots": "Limited slots available daily",
+    "title": "Ready to glow up?",
+    "subtitle": "Join 200+ happy clients. Your dream nails are one booking away.",
+    "button": "Book My Appointment"
+  },
+  "footer": {
+    "tagline": "Premium nail artistry & lash treatments in Cairo. Book in 60 seconds.",
+    "servicesTitle": "Services",
+    "locationsTitle": "Locations",
+    "quickLinksTitle": "Quick Links",
+    "heliopolis": "Heliopolis",
+    "newCairo": "New Cairo",
+    "hours": "Sat–Thu · 11 AM – 9 PM",
+    "cairoEgypt": "Cairo, Egypt",
+    "bookAppointment": "Book an Appointment →",
+    "copyright": "GlowBook Egypt. All rights reserved.",
+    "links": {
+      "bookNow": "Book Now",
+      "myAccount": "My Account",
+      "services": "Services",
+      "howItWorks": "How It Works"
+    }
+  },
+  "mobileCta": {
+    "button": "Book Your Appointment"
+  },
+  "booking": {
+    "headerTitle": "Reserve Your Spot",
+    "signInBanner": "Have an account? <strong>Sign in</strong> to auto-fill your details.",
+    "signInLink": "Sign In →",
+    "formHint": "Fill in your details — takes under 60 seconds.",
+    "fullName": "Full Name",
+    "namePlaceholder": "e.g., Farida Amin",
+    "whatsappPhone": "WhatsApp / Phone",
+    "phonePlaceholder": "010XXXXXXXX",
+    "emailPlaceholder": "you@example.com",
+    "service": "Service",
+    "loadingServices": "Loading services…",
+    "date": "Date",
+    "selected": "Selected",
+    "preferredTime": "Preferred Time",
+    "nextPayment": "Next: Choose Payment",
+    "choosePayment": "Choose Payment",
+    "yourBooking": "Your booking",
+    "howToPay": "How would you like to pay?",
+    "creditCard": "Credit / Debit Card",
+    "creditCardDesc": "Secure online payment via Fawaterak",
+    "instapay": "InstaPay",
+    "instapayTitle": "InstaPay Instructions",
+    "instapayDesc1": "Send your payment to:",
+    "instapayDesc2": "Include your name in the transfer note. Tap \"Confirm Payment\" after sending.",
+    "vodafoneCash": "Vodafone Cash",
+    "vodafoneTitle": "Vodafone Cash Instructions",
+    "vodafoneDesc1": "Send your payment to:",
+    "vodafoneDesc2": "Include your name in the transfer note. Tap \"Confirm Payment\" after sending.",
+    "cardTitle": "Card Payment",
+    "cardDesc": "You will be redirected to the Fawaterak secure payment gateway to complete your card payment.",
+    "cardSecured": "Secured by Fawaterak · All major cards accepted",
+    "proceedCard": "Proceed to Card Payment",
+    "confirmPayment": "Confirm Payment",
+    "processing": "Processing…",
+    "booked": "You're booked!",
+    "bookedDesc": "Your spot is confirmed. See you soon!",
+    "redirecting": "Redirecting to home…",
+    "somethingWrong": "Something went wrong. Please try again.",
+    "networkIssue": "Network issue. Please check your connection.",
+    "months": ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    "dayNames": ["Su","Mo","Tu","We","Th","Fr","Sa"]
+  },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to manage your bookings",
+    "signingIn": "Signing in…",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "No account?",
+    "createOne": "Create one",
+    "loginFailed": "Login failed."
+  },
+  "register": {
+    "title": "Create your account",
+    "subtitle": "Join GlowBook and manage your beauty appointments",
+    "fullName": "Full Name",
+    "namePlaceholder": "Farida Amin",
+    "phonePlaceholder": "010XXXXXXXX",
+    "passwordPlaceholder": "Min. 8 characters",
+    "passwordHint": "At least 8 characters",
+    "creating": "Creating account…",
+    "createAccount": "Create Account",
+    "alreadyHave": "Already have an account?",
+    "registrationFailed": "Registration failed."
+  },
+  "resetPassword": {
+    "requestTitle": "Reset password",
+    "requestDesc": "Enter your email and we'll send a reset code.",
+    "verifyTitle": "Enter your code",
+    "verifyDesc": "We sent a 6-digit code to",
+    "resetTitle": "New password",
+    "resetDesc": "Choose a strong new password.",
+    "codeLabel": "6-Digit Code",
+    "newPassword": "New Password",
+    "sending": "Sending…",
+    "sendCode": "Send Reset Code",
+    "verifying": "Verifying…",
+    "verifyCode": "Verify Code",
+    "resendCode": "Resend code",
+    "updating": "Updating…",
+    "updatePassword": "Update Password",
+    "doneTitle": "Password updated!",
+    "doneDesc": "You can now sign in with your new password.",
+    "backToSignIn": "Back to sign in",
+    "couldNotSend": "Could not send reset email. Check your email address.",
+    "invalidCode": "Invalid code.",
+    "minPassword": "Password must be at least 8 characters.",
+    "resetFailed": "Reset failed."
+  },
+  "dashboard": {
+    "yourPoints": "Your Points",
+    "earnPoints": "Earn points on completed bookings",
+    "bookNew": "Book a New Appointment",
+    "rewards": "Rewards",
+    "pointsProgress": "Points progress",
+    "thresholdReached": "You've reached the threshold! A coupon will be generated on your next completed booking.",
+    "morePoints1": "more points to earn a",
+    "morePoints2": "off coupon",
+    "ptsPerBooking": "pts per completed booking",
+    "couponCodes": "Your Coupon Codes",
+    "off": "off",
+    "used": "used",
+    "upcoming": "Upcoming Appointments",
+    "noUpcoming": "No upcoming appointments",
+    "history": "History",
+    "reschedule": "Reschedule",
+    "chooseNewDateTime": "Choose new date & time:",
+    "couldNotReschedule": "Could not reschedule. Please try again."
+  },
+  "admin": {
+    "adminPanel": "Admin Panel",
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "analytics": "Analytics",
+    "promos": "Promo Codes",
+    "services": "Services",
+    "gallery": "Gallery",
+    "points": "Points & Rewards",
+    "clients": "Clients",
+    "logout": "Log out",
+    "login": {
+      "title": "GlowBook",
+      "subtitle": "Admin Access",
+      "password": "Password",
+      "placeholder": "Enter your admin password",
+      "enter": "Enter Dashboard",
+      "checking": "Checking...",
+      "wrongPassword": "Wrong password. Try again.",
+      "connectionError": "Connection error. Please retry."
+    },
+    "dashboardPage": {
+      "title": "Dashboard",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisMonth": "This Month",
+      "allTime": "All Time",
+      "appointments": "appointments",
+      "scheduled": "scheduled",
+      "bookings": "bookings",
+      "totalClients": "total clients",
+      "todaySchedule": "Today's Schedule",
+      "viewAll": "View All",
+      "noAppointmentsToday": "No appointments today",
+      "monthlyOverview": "Monthly Overview",
+      "recentlyAdded": "Recently Added",
+      "noBookingsYet": "No bookings yet"
+    },
+    "ordersPage": {
+      "title": "Orders",
+      "subtitle": "Search, filter, and manage all bookings"
+    },
+    "servicesPage": {
+      "title": "Services",
+      "subtitle": "Add, edit, and manage your service menu and pricing"
+    },
+    "galleryPage": {
+      "title": "Gallery",
+      "subtitle": "Manage the \"Our Work\" section on the homepage"
+    },
+    "promosPage": {
+      "title": "Promo Codes",
+      "subtitle": "Generate and manage discount codes"
+    },
+    "pointsPage": {
+      "title": "Points & Rewards",
+      "subtitle": "Configure how clients earn points and auto-generated coupons"
+    },
+    "usersPage": {
+      "title": "Clients",
+      "subtitle": "Registered user accounts",
+      "total": "total",
+      "searchPlaceholder": "Search by name or email…",
+      "noMatch": "No clients match your search.",
+      "noClients": "No registered clients yet.",
+      "client": "Client",
+      "contact": "Contact",
+      "pointsCol": "Points",
+      "bookingsCol": "Bookings"
+    },
+    "analyticsPage": {
+      "title": "Analytics",
+      "subtitle": "Overview of your salon performance",
+      "totalBookings": "Total Bookings",
+      "thisMonth": "This Month",
+      "uniqueClients": "Unique Clients",
+      "last7Days": "Bookings — Last 7 Days",
+      "topServices": "Top Services",
+      "bookingStatus": "Booking Status",
+      "noData": "No data yet"
+    }
+  }
+}
