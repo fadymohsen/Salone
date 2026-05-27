@@ -22,7 +22,13 @@ export async function POST(request: Request) {
     if (promoCode) {
       const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
       if (promo && promo.isActive && (!promo.maxUsage || promo.usageCount < promo.maxUsage)) {
-        if (amount) amount = Math.max(0, amount - Math.round(amount * promo.discount / 100));
+        if (amount) {
+          if (promo.discountType === "fixed") {
+            amount = Math.max(0, amount - promo.discount);
+          } else {
+            amount = Math.max(0, amount - Math.round(amount * promo.discount / 100));
+          }
+        }
         appliedPromo = promo.code;
         await prisma.promoCode.update({ where: { id: promo.id }, data: { usageCount: { increment: 1 } } });
       }

@@ -118,6 +118,7 @@ model GalleryImage {
 model PromoCode {
   id         String   @id @default(uuid())
   code       String   @unique
+  discountType String  @default("percentage")
   discount   Int
   isActive   Boolean  @default(true)
   usageCount Int      @default(0)

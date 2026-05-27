@@ -113,6 +113,7 @@ function BookingFormContent() {
   const [availableDays, setAvailableDays] = useState<number[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>(DEFAULT_TIMES);
   const [promoDiscount, setPromoDiscount] = useState<number | null>(null);
+  const [promoType, setPromoType] = useState<"percentage" | "fixed">("percentage");
   const [promoError, setPromoError] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
 
@@ -226,13 +227,19 @@ function BookingFormContent() {
     try {
       const res = await fetch("/api/promo/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: form.promoCode, serviceType: form.serviceType }) });
       const data = await res.json();
-      if (data.valid) setPromoDiscount(data.discount);
+      if (data.valid) { setPromoDiscount(data.discount); setPromoType(data.discountType || "percentage"); }
       else setPromoError(data.error || (locale === "ar" ? "كود غير صالح" : "Invalid code"));
     } catch { setPromoError(locale === "ar" ? "خطأ في الاتصال" : "Connection error"); }
     finally { setPromoLoading(false); }
   };
 
   const selectedService = services.find(s => s.name === form.serviceType);
+  const calcDiscount = (price: number) => {
+    if (!promoDiscount) return price;
+    if (promoType === "fixed") return Math.max(0, price - promoDiscount);
+    return Math.max(0, price - Math.round(price * promoDiscount / 100));
+  };
+  const promoLabel = promoDiscount ? (promoType === "fixed" ? `${promoDiscount} EGP` : `${promoDiscount}%`) : "";
   const filteredServices = selectedCategory ? services.filter(s => s.categoryId === selectedCategory) : services;
   const displayName = (s: ServiceOption) => locale === "ar" ? (s.nameAr || s.name) : s.name;
   const displayCatName = (c: CategoryOption) => locale === "ar" ? (c.nameAr || c.name) : c.name;
@@ -248,7 +255,7 @@ function BookingFormContent() {
     ];
 
     const price = selectedService?.price ?? 0;
-    const finalPrice = promoDiscount ? Math.max(0, price - Math.round(price * promoDiscount / 100)) : price;
+    const finalPrice = calcDiscount(price);
 
     return (
       <div className="min-h-screen bg-background pb-10">
@@ -273,7 +280,7 @@ function BookingFormContent() {
                 <span className="text-xs text-muted line-through">{price} {t.common.egp}</span>
               )}
               {promoDiscount && (
-                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">-{promoDiscount}%</span>
+                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">-{promoLabel}</span>
               )}
             </div>
           </div>
@@ -481,7 +488,7 @@ function BookingFormContent() {
               </div>
               {promoDiscount && (
                 <p className="text-xs font-bold text-green-600 mt-1.5 ps-1">
-                  <CheckCircle2 size={12} className="inline -mt-0.5 me-1" />{locale === "ar" ? `خصم ${promoDiscount}% مطبق!` : `${promoDiscount}% discount applied!`}
+                  <CheckCircle2 size={12} className="inline -mt-0.5 me-1" />{locale === "ar" ? `خصم ${promoLabel} مطبق!` : `${promoLabel} discount applied!`}
                 </p>
               )}
               {promoError && <p className="text-xs text-red-500 mt-1.5 ps-1">{promoError}</p>}
@@ -534,9 +541,9 @@ function BookingFormContent() {
                 <div className="flex items-center gap-2 mt-2">
                   {promoDiscount ? (
                     <>
-                      <span className="text-sm font-bold text-primary">{Math.max(0, selectedService.price - Math.round(selectedService.price * promoDiscount / 100))} {t.common.egp}</span>
+                      <span className="text-sm font-bold text-primary">{calcDiscount(selectedService.price)} {t.common.egp}</span>
                       <span className="text-xs text-muted line-through">{selectedService.price} {t.common.egp}</span>
-                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">-{promoDiscount}%</span>
+                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">-{promoLabel}</span>
                     </>
                   ) : (
                     <span className="text-sm font-bold text-primary">{selectedService.price} {t.common.egp}</span>

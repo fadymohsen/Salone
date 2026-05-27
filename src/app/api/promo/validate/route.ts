@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ valid: false, error: "This promo code doesn't apply to the selected service" });
     }
 
-    return NextResponse.json({ valid: true, discount: promo.discount, serviceIds: promo.serviceIds });
+    return NextResponse.json({ valid: true, discount: promo.discount, discountType: promo.discountType, serviceIds: promo.serviceIds });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

@@ -8,6 +8,7 @@ type ServiceOption = { id: string; name: string };
 type Promo = {
   id: string;
   code: string;
+  discountType: "percentage" | "fixed";
   discount: number;
   isActive: boolean;
   usageCount: number;
@@ -29,7 +30,7 @@ export default function PromoManager() {
   const [promos, setPromos] = useState<Promo[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [] as string[], allServices: true });
+  const [form, setForm] = useState({ code: randomCode(), discountType: "percentage" as "percentage" | "fixed", discount: "15", maxUsage: "", selectedServices: [] as string[], allServices: true });
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -60,6 +61,7 @@ export default function PromoManager() {
     setEditId(p.id);
     setForm({
       code: p.code,
+      discountType: p.discountType || "percentage",
       discount: String(p.discount),
       maxUsage: p.maxUsage ? String(p.maxUsage) : "",
       selectedServices: p.serviceIds ? p.serviceIds.split(",") : [],
@@ -73,6 +75,7 @@ export default function PromoManager() {
     setSaving(true);
     const payload = {
       code: form.code,
+      discountType: form.discountType,
       discount: Number(form.discount),
       maxUsage: form.maxUsage ? Number(form.maxUsage) : null,
       serviceIds: form.allServices ? null : form.selectedServices.join(","),
@@ -82,7 +85,7 @@ export default function PromoManager() {
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     setSaving(false);
     if (res.ok) {
-      setForm({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [], allServices: true });
+      setForm({ code: randomCode(), discountType: "percentage", discount: "15", maxUsage: "", selectedServices: [], allServices: true });
       setShowForm(false);
       setEditId(null);
       fetchPromos();
@@ -113,7 +116,7 @@ export default function PromoManager() {
       {/* Header button */}
       <div className="flex justify-end">
         <button
-          onClick={() => { setForm({ code: randomCode(), discount: "15", maxUsage: "", selectedServices: [], allServices: true }); setEditId(null); setShowForm(!showForm); }}
+          onClick={() => { setForm({ code: randomCode(), discountType: "percentage", discount: "15", maxUsage: "", selectedServices: [], allServices: true }); setEditId(null); setShowForm(!showForm); }}
           className="flex items-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]"
         >
           {showForm ? (
@@ -131,7 +134,7 @@ export default function PromoManager() {
             <Tag size={16} className="text-primary" aria-hidden="true" />
             {editId ? "Edit Promo Code" : "New Promo Code"}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Code</label>
               <div className="flex gap-1.5">
@@ -152,11 +155,34 @@ export default function PromoManager() {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Discount %</label>
+              <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Type</label>
+              <div className="flex gap-1.5">
+                <button type="button" onClick={() => setForm({ ...form, discountType: "percentage" })}
+                  className={`flex-1 py-2.5 rounded-xl border text-xs font-bold text-center transition-all duration-150 cursor-pointer ${
+                    form.discountType === "percentage"
+                      ? "bg-primary text-white border-primary"
+                      : "bg-background text-glam-text border-border hover:border-primary/50"
+                  }`}>
+                  % Percentage
+                </button>
+                <button type="button" onClick={() => setForm({ ...form, discountType: "fixed" })}
+                  className={`flex-1 py-2.5 rounded-xl border text-xs font-bold text-center transition-all duration-150 cursor-pointer ${
+                    form.discountType === "fixed"
+                      ? "bg-primary text-white border-primary"
+                      : "bg-background text-glam-text border-border hover:border-primary/50"
+                  }`}>
+                  EGP Fixed
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
+                {form.discountType === "percentage" ? "Discount %" : "Discount (EGP)"}
+              </label>
               <input
                 type="number"
                 min="1"
-                max="100"
+                max={form.discountType === "percentage" ? 100 : undefined}
                 required
                 value={form.discount}
                 onChange={(e) => setForm({ ...form, discount: e.target.value })}
@@ -242,7 +268,7 @@ export default function PromoManager() {
                     <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">All Services</span>
                   )}
                 </div>
-                <span className="font-bold text-primary tabular-nums">{p.discount}% off</span>
+                <span className="font-bold text-primary tabular-nums text-center">{p.discountType === "fixed" ? `${p.discount} EGP` : `${p.discount}%`} off</span>
                 <span className="text-sm text-muted tabular-nums">
                   {p.usageCount}{p.maxUsage ? `/${p.maxUsage}` : ""}
                 </span>
@@ -274,7 +300,7 @@ export default function PromoManager() {
                 <div className="flex-1">
                   <p className="font-black text-glam-text tracking-wider">{p.code}</p>
                   <p className="text-xs text-muted">{p.serviceIds ? `${p.serviceIds.split(",").length} services` : "All services"}</p>
-                  <p className="text-xs text-muted mt-0.5">{p.discount}% off · Used {p.usageCount}{p.maxUsage ? `/${p.maxUsage}` : ""} times</p>
+                  <p className="text-xs text-muted mt-0.5">{p.discountType === "fixed" ? `${p.discount} EGP` : `${p.discount}%`} off · Used {p.usageCount}{p.maxUsage ? `/${p.maxUsage}` : ""} times</p>
                 </div>
                 <button
                   onClick={() => toggleActive(p)}

@@ -17,6 +17,7 @@ export async function PUT(
     data: {
       isActive: body.isActive !== undefined ? body.isActive : undefined,
       code: body.code || undefined,
+      discountType: body.discountType || undefined,
       discount: body.discount !== undefined ? Number(body.discount) : undefined,
       maxUsage: body.maxUsage !== undefined ? (body.maxUsage ? Number(body.maxUsage) : null) : undefined,
       serviceIds: body.serviceIds !== undefined ? (body.serviceIds || null) : undefined,
