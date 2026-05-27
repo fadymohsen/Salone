@@ -129,52 +129,58 @@ export default function PromoManager() {
 
       {/* Create form */}
       {showForm && (
-        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-border p-6 space-y-4 shadow-sm">
-          <h2 className="font-serif font-bold text-glam-text flex items-center gap-2">
-            <Tag size={16} className="text-primary" aria-hidden="true" />
+        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-border p-6 space-y-5 shadow-sm">
+          <h2 className="font-serif text-lg font-bold text-glam-text flex items-center gap-2">
+            <Tag size={18} className="text-primary" aria-hidden="true" />
             {editId ? "Edit Promo Code" : "New Promo Code"}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Code</label>
-              <div className="flex gap-1.5">
-                <input
-                  value={form.code}
-                  onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                  required
-                  className={`${INPUT_CLS} flex-1 font-bold uppercase tracking-wider`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, code: randomCode() })}
-                  title="Regenerate code"
-                  className="w-10 flex items-center justify-center bg-pastel-pink text-primary rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
-                >
-                  <RotateCcw size={14} aria-hidden="true" />
-                </button>
-              </div>
+
+          {/* Code */}
+          <div>
+            <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Promo Code</label>
+            <div className="flex gap-2">
+              <input
+                value={form.code}
+                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                required
+                className={`${INPUT_CLS} flex-1 font-black uppercase tracking-[0.15em] text-base text-primary`}
+              />
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, code: randomCode() })}
+                title="Regenerate code"
+                className="w-11 h-11 flex items-center justify-center bg-pastel-pink text-primary rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer shrink-0"
+              >
+                <RotateCcw size={16} aria-hidden="true" />
+              </button>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Type</label>
-              <div className="flex gap-1.5">
-                <button type="button" onClick={() => setForm({ ...form, discountType: "percentage" })}
-                  className={`flex-1 py-2.5 rounded-xl border text-xs font-bold text-center transition-all duration-150 cursor-pointer ${
-                    form.discountType === "percentage"
-                      ? "bg-primary text-white border-primary"
-                      : "bg-background text-glam-text border-border hover:border-primary/50"
-                  }`}>
-                  % Percentage
-                </button>
-                <button type="button" onClick={() => setForm({ ...form, discountType: "fixed" })}
-                  className={`flex-1 py-2.5 rounded-xl border text-xs font-bold text-center transition-all duration-150 cursor-pointer ${
-                    form.discountType === "fixed"
-                      ? "bg-primary text-white border-primary"
-                      : "bg-background text-glam-text border-border hover:border-primary/50"
-                  }`}>
-                  EGP Fixed
-                </button>
-              </div>
+          </div>
+
+          {/* Discount Type */}
+          <div>
+            <label className="block text-xs font-bold text-glam-text/70 mb-2">Discount Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setForm({ ...form, discountType: "percentage" })}
+                className={`py-3 rounded-xl border text-sm font-bold text-center transition-all duration-150 cursor-pointer min-h-[48px] ${
+                  form.discountType === "percentage"
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                    : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                }`}>
+                % Percentage
+              </button>
+              <button type="button" onClick={() => setForm({ ...form, discountType: "fixed" })}
+                className={`py-3 rounded-xl border text-sm font-bold text-center transition-all duration-150 cursor-pointer min-h-[48px] ${
+                  form.discountType === "fixed"
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                    : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                }`}>
+                EGP Fixed Amount
+              </button>
             </div>
+          </div>
+
+          {/* Discount Value + Max Uses */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-glam-text/70 mb-1.5">
                 {form.discountType === "percentage" ? "Discount %" : "Discount (EGP)"}
@@ -186,6 +192,7 @@ export default function PromoManager() {
                 required
                 value={form.discount}
                 onChange={(e) => setForm({ ...form, discount: e.target.value })}
+                placeholder={form.discountType === "percentage" ? "e.g. 15" : "e.g. 50"}
                 className={INPUT_CLS}
               />
             </div>
@@ -202,22 +209,22 @@ export default function PromoManager() {
             </div>
           </div>
 
-          {/* Service Selection — compact */}
+          {/* Applies To */}
           <div>
             <label className="block text-xs font-bold text-glam-text/70 mb-2">Applies to</label>
             <div className="flex items-center gap-2">
               {form.allServices ? (
-                <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-sm font-bold px-3 py-2 rounded-xl border border-primary/20">
-                  <CheckSquare size={13} aria-hidden="true" /> All Services
+                <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-600 text-sm font-bold px-4 py-2.5 rounded-xl border border-green-200">
+                  <CheckSquare size={14} aria-hidden="true" /> All Services
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 bg-pastel-pink text-primary text-sm font-bold px-3 py-2 rounded-xl">
+                <span className="inline-flex items-center gap-1.5 bg-pastel-pink text-primary text-sm font-bold px-4 py-2.5 rounded-xl">
                   {form.selectedServices.length} service{form.selectedServices.length !== 1 ? "s" : ""} selected
                 </span>
               )}
               <button type="button" onClick={() => setShowServicePicker(true)}
-                className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-secondary transition-colors cursor-pointer px-3 py-2 rounded-xl border border-border hover:border-primary/40">
-                <Pencil size={12} aria-hidden="true" /> Edit
+                className="flex items-center gap-1.5 text-sm font-bold text-primary hover:text-secondary transition-colors cursor-pointer px-4 py-2.5 rounded-xl border border-border hover:border-primary/40">
+                <Pencil size={13} aria-hidden="true" /> Edit
               </button>
             </div>
           </div>
@@ -225,7 +232,7 @@ export default function PromoManager() {
           <button
             type="submit"
             disabled={saving || (!form.allServices && form.selectedServices.length === 0)}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all duration-150 disabled:opacity-50 min-h-[48px] cursor-pointer shadow-sm shadow-primary/20"
+            className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 rounded-2xl hover:bg-secondary transition-all duration-150 disabled:opacity-50 min-h-[52px] cursor-pointer shadow-md shadow-primary/25"
           >
             {saving ? (
               <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {editId ? "Saving…" : "Creating…"}</>
