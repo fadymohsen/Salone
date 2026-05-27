@@ -26,6 +26,7 @@ export async function GET() {
             bookingTime: true,
             status: true,
             paymentStatus: true,
+            paymentMethod: true,
             amount: true,
             createdAt: true,
           },

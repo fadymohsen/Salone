@@ -12,7 +12,7 @@ import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
 type User = { id: string; name: string; email: string; phone: string | null; points: number };
 type Booking = {
   id: string; serviceType: string; bookingDate: string; bookingTime: string;
-  status: string; paymentStatus: string; pointsEarned: number | null;
+  status: string; paymentStatus: string; paymentMethod: string | null; pointsEarned: number | null;
 };
 type Coupon = { id: string; code: string; discount: number; usageCount: number; maxUsage: number | null };
 type CouponsData = { coupons: Coupon[]; threshold: number; pointsPerBooking: number; couponDiscount: number; totalEarned: number; totalRedeemed: number };
@@ -359,7 +359,14 @@ export default function DashboardPage() {
                 <div key={b.id} className="bg-white rounded-2xl border border-border p-4 shadow-sm">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
+                        {b.paymentMethod === "points" && (
+                          <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                            <Star size={9} aria-hidden="true" /> {locale === "ar" ? "ولاء" : "Loyalty"}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="flex items-center gap-1 text-xs text-muted"><CalendarDays size={11} aria-hidden="true" /> {b.bookingDate}</span>
                         <span className="flex items-center gap-1 text-xs text-muted"><Clock size={11} aria-hidden="true" /> {b.bookingTime}</span>
@@ -420,7 +427,14 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
+                      {b.paymentMethod === "points" && (
+                        <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                          <Star size={9} aria-hidden="true" /> {locale === "ar" ? "ولاء" : "Loyalty"}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted">{b.bookingDate} · {b.bookingTime}</p>
                   </div>
                   {b.pointsEarned && b.pointsEarned > 0 && (

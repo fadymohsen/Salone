@@ -6,7 +6,7 @@ import { useDictionary } from "@/lib/i18n/DictionaryContext";
 
 type Booking = {
   id: string; serviceType: string; bookingDate: string; bookingTime: string;
-  status: string; paymentStatus: string; amount: number | null; createdAt: string;
+  status: string; paymentStatus: string; paymentMethod: string | null; amount: number | null; createdAt: string;
 };
 
 type UserRow = {
@@ -222,7 +222,14 @@ export default function UsersPage() {
                         <div key={b.id} className="flex items-center gap-3 bg-background rounded-xl px-4 py-3 border border-border">
                           <StatusIcon size={15} className={b.status === "completed" ? "text-green-500" : b.status === "cancelled" ? "text-red-400" : "text-blue-500"} aria-hidden="true" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
+                              {b.paymentMethod === "points" && (
+                                <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                                  <Star size={9} aria-hidden="true" /> Loyalty
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-muted">{b.bookingDate} · {b.bookingTime}</p>
                           </div>
                           <div className="text-end shrink-0">
