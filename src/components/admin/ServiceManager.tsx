@@ -146,7 +146,7 @@ export default function ServiceManager() {
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [newTime, setNewTime] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; icon: "home" | "star" } | null>(null);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -244,8 +244,8 @@ export default function ServiceManager() {
     fetchServices();
   };
 
-  const showToast = (msg: string) => {
-    setToast(msg);
+  const showToast = (msg: string, icon: "home" | "star" = "home") => {
+    setToast({ msg, icon });
     setTimeout(() => setToast(null), 3000);
   };
 
@@ -278,7 +278,7 @@ export default function ServiceManager() {
       // un-popular is always allowed
     } else {
       if (popularCount >= 3) {
-        showToast("Maximum 3 services can be marked as Most Popular.");
+        showToast("Maximum 3 services can be marked as Most Popular.", "star");
         return;
       }
     }
@@ -771,10 +771,10 @@ export default function ServiceManager() {
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-[fadeInUp_0.2s_ease-out]">
           <div className="flex items-center gap-3 bg-glam-text text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-black/20 max-w-sm">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0">
-              <Home size={14} aria-hidden="true" />
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${toast.icon === "star" ? "bg-yellow-400" : "bg-primary"}`}>
+              {toast.icon === "star" ? <Star size={14} aria-hidden="true" /> : <Home size={14} aria-hidden="true" />}
             </div>
-            <p className="text-sm font-medium">{toast}</p>
+            <p className="text-sm font-medium">{toast.msg}</p>
           </div>
         </div>
       )}
