@@ -272,6 +272,24 @@ export default function ServiceManager() {
     fetchServices();
   };
 
+  const togglePopular = async (s: Service) => {
+    const popularCount = services.filter((sv) => sv.popular).length;
+    if (s.popular) {
+      // un-popular is always allowed
+    } else {
+      if (popularCount >= 3) {
+        showToast("Maximum 3 services can be marked as Most Popular.");
+        return;
+      }
+    }
+    await fetch(`/api/admin/services/${s.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...s, popular: !s.popular }),
+    });
+    fetchServices();
+  };
+
   // Day toggle
   const toggleDay = (day: number) => {
     setForm((prev) => ({
@@ -326,10 +344,11 @@ export default function ServiceManager() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide items-center">
+          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide items-center">
             <span className="w-9" />
             <span className="text-center">Service</span>
             <span className="text-center">Price</span>
+            <span className="text-center">Popular</span>
             <span className="text-center">Home</span>
             <span className="text-center">Status</span>
             <span className="text-center">Actions</span>
@@ -343,7 +362,7 @@ export default function ServiceManager() {
               className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100"
             >
               {/* Desktop row */}
-              <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-3.5 items-center">
+              <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px_120px_100px] gap-3 px-5 py-3.5 items-center">
                 <div className="w-9 h-9 rounded-xl bg-pastel-pink flex items-center justify-center shrink-0">
                   <IconComp size={16} className="text-primary" aria-hidden="true" />
                 </div>
@@ -351,6 +370,19 @@ export default function ServiceManager() {
                   <p className="font-bold text-sm text-glam-text text-center">{s.name}</p>
                 </div>
                 <span className="font-bold text-primary text-sm tabular-nums text-center">{s.price} EGP</span>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => togglePopular(s)}
+                    title={s.popular ? "Remove Most Popular" : "Mark as Most Popular"}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+                      s.popular
+                        ? "bg-yellow-400 text-white"
+                        : "bg-background text-muted border border-border hover:border-yellow-400 hover:text-yellow-500"
+                    }`}
+                  >
+                    <Star size={13} aria-hidden="true" />
+                  </button>
+                </div>
                 <div className="flex justify-center">
                   <button
                     onClick={() => toggleFeatured(s)}
@@ -405,6 +437,14 @@ export default function ServiceManager() {
                     {s.price} EGP
                   </p>
                 </div>
+                <button
+                  onClick={() => togglePopular(s)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+                    s.popular ? "bg-yellow-400 text-white" : "bg-background text-muted border border-border"
+                  }`}
+                >
+                  <Star size={12} aria-hidden="true" />
+                </button>
                 <button
                   onClick={() => toggleFeatured(s)}
                   className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
