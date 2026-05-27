@@ -328,25 +328,6 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
               })}
             </div>
 
-            {pointsConfig && (
-              <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-10">
-                <div className="text-center">
-                  <p className="font-serif text-2xl sm:text-3xl font-bold text-primary">{pointsConfig.pointsPerBooking}</p>
-                  <p className="text-xs text-muted mt-1">{t.loyalty.pointsPerBooking}</p>
-                </div>
-                <div className="w-px h-10 bg-border hidden sm:block" aria-hidden="true" />
-                <div className="text-center">
-                  <p className="font-serif text-2xl sm:text-3xl font-bold text-primary">{pointsConfig.pointsThreshold}</p>
-                  <p className="text-xs text-muted mt-1">{t.loyalty.pointsToUnlock}</p>
-                </div>
-                <div className="w-px h-10 bg-border hidden sm:block" aria-hidden="true" />
-                <div className="text-center">
-                  <p className="font-serif text-2xl sm:text-3xl font-bold text-primary">{pointsConfig.couponDiscount}%</p>
-                  <p className="text-xs text-muted mt-1">{t.loyalty.discountCoupon}</p>
-                </div>
-              </div>
-            )}
-
             <div className="text-center">
               <Link href={l("/account/register")} className="inline-flex items-center gap-2 bg-primary text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary/25 hover:bg-secondary transition-all duration-200 active:scale-[0.97] cursor-pointer text-base">
                 {t.loyalty.createAccount}

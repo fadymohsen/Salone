@@ -91,9 +91,9 @@
     "title2": "Rewarded.",
     "subtitle": "Every booking brings you closer to free discounts. Join our loyalty program — it's free and automatic.",
     "steps": [
-      { "title": "Book & Earn", "desc": "Earn points with every appointment you complete." },
-      { "title": "Hit Your Goal", "desc": "Reach the points threshold and unlock your reward." },
-      { "title": "Get a Coupon", "desc": "Receive an automatic discount on your next visit." }
+      { "title": "Book & Earn", "desc": "Every 1 EGP you spend earns you 1 point automatically." },
+      { "title": "Collect Points", "desc": "Watch your points grow with every visit to the salon." },
+      { "title": "Get Your Gift", "desc": "Redeem your points for exclusive discounts on your favorite services." }
     ],
     "pointsPerBooking": "Points per booking",
     "pointsToUnlock": "Points to unlock reward",
