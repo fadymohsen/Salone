@@ -16,7 +16,9 @@ type Booking = {
   promoCode: string | null;
 };
 
-const SERVICES = ["Classic Manicure", "French Rose Acrylics", "Glazed Donut Nails", "Vanilla Velvet Set", "Lash Lift & Glow"];
+type CategoryOption = { id: string; name: string };
+type ServiceOption = { id: string; name: string; categoryId: string | null };
+
 const TIMES = ["11:00", "12:30", "14:00", "15:30", "17:00", "18:30", "20:00"];
 const STATUSES = ["confirmed", "completed", "cancelled"];
 
@@ -26,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "bg-red-50 text-red-500 border-red-100",
 };
 
-const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "", serviceType: "Classic Manicure", bookingDate: "", bookingTime: "11:00", status: "confirmed", notes: "", promoCode: "" };
+const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "", serviceType: "", bookingDate: "", bookingTime: "11:00", status: "confirmed", notes: "", promoCode: "" };
 
 const INPUT_CLS = "w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150";
 
@@ -42,6 +44,9 @@ export default function OrdersManager() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Booking | null>(null);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [services, setServices] = useState<ServiceOption[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -63,8 +68,23 @@ export default function OrdersManager() {
 
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
-  const openCreate = () => { setForm(EMPTY); setModal("create"); };
-  const openEdit = (b: Booking) => { setForm(b); setModal("edit"); };
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/admin/categories").then(r => r.json()),
+      fetch("/api/admin/services").then(r => r.json()),
+    ]).then(([cData, sData]) => {
+      setCategories(Array.isArray(cData) ? cData : []);
+      setServices(Array.isArray(sData) ? sData : []);
+    });
+  }, []);
+
+  const openCreate = () => { setForm(EMPTY); setSelectedCategory(""); setModal("create"); };
+  const openEdit = (b: Booking) => {
+    setForm(b);
+    const svc = services.find(s => s.name === b.serviceType);
+    setSelectedCategory(svc?.categoryId ?? "");
+    setModal("edit");
+  };
   const closeModal = () => setModal(null);
 
   const handleSave = async () => {
@@ -129,7 +149,7 @@ export default function OrdersManager() {
           className="bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer"
         >
           <option value="">All Services</option>
-          {SERVICES.map((s) => <option key={s}>{s}</option>)}
+          {services.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)}
         </select>
         <select
           value={filterStatus}
@@ -272,12 +292,48 @@ export default function OrdersManager() {
                 </div>
               ))}
 
+              {/* Category */}
               <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Service *</label>
-                <select value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })} className={`${INPUT_CLS} cursor-pointer`}>
-                  {SERVICES.map((s) => <option key={s}>{s}</option>)}
-                </select>
+                <label className="block text-xs font-bold text-glam-text/70 mb-2">Category *</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {categories.map((c) => (
+                    <button key={c.id} type="button"
+                      onClick={() => { setSelectedCategory(c.id); setForm({ ...form, serviceType: "" }); }}
+                      className={`px-3 py-2.5 rounded-xl border text-sm font-semibold text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
+                        selectedCategory === c.id
+                          ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                          : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                      }`}>
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Service */}
+              {selectedCategory && (
+                <div>
+                  <label className="block text-xs font-bold text-glam-text/70 mb-2">Service *</label>
+                  <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                    {services.filter(s => s.categoryId === selectedCategory).map((s) => (
+                      <button key={s.id} type="button"
+                        onClick={() => setForm({ ...form, serviceType: s.name })}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-start text-sm font-medium transition-all duration-150 cursor-pointer min-h-[48px] ${
+                          form.serviceType === s.name
+                            ? "border-primary ring-2 ring-primary/15 bg-primary/5 text-primary font-bold"
+                            : "border-border bg-background text-glam-text hover:border-primary/40"
+                        }`}>
+                        <span>{s.name}</span>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                          form.serviceType === s.name ? "border-primary bg-primary" : "border-border"
+                        }`}>
+                          {form.serviceType === s.name && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-2">Time *</label>
