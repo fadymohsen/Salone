@@ -746,28 +746,59 @@ export default function ServiceManager() {
                     const range = form.dayRanges[key];
                     if (!range) return null;
                     const slots = generateSlots(range.start, range.end, form.duration || 60);
+                    const TIME_OPTIONS = Array.from({ length: 30 }, (_, i) => {
+                      const m = 7 * 60 + i * 30; // 7:00 AM to 9:30 PM
+                      return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+                    });
+                    const formatTime = (t: string) => {
+                      const [h, m] = t.split(":").map(Number);
+                      const ampm = h >= 12 ? "PM" : "AM";
+                      const h12 = h % 12 || 12;
+                      return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+                    };
                     return (
                       <div key={dayIndex} className="bg-background border border-border rounded-2xl p-4">
                         <p className="text-xs font-bold text-glam-text mb-3">{label}</p>
                         <div className="grid grid-cols-2 gap-3 mb-3">
                           <div>
-                            <label className="block text-xs text-muted mb-1">From</label>
-                            <input type="time" value={range.start}
-                              onChange={(e) => updateDayRange(key, "start", e.target.value)}
-                              className={INPUT} />
+                            <label className="block text-xs text-muted mb-1.5">From</label>
+                            <div className="flex flex-wrap gap-1">
+                              {TIME_OPTIONS.map((t) => (
+                                <button key={t} type="button" onClick={() => updateDayRange(key, "start", t)}
+                                  className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer border ${
+                                    range.start === t
+                                      ? "bg-primary text-white border-primary"
+                                      : "bg-white text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                                  }`}>
+                                  {formatTime(t)}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                           <div>
-                            <label className="block text-xs text-muted mb-1">To</label>
-                            <input type="time" value={range.end}
-                              onChange={(e) => updateDayRange(key, "end", e.target.value)}
-                              className={INPUT} />
+                            <label className="block text-xs text-muted mb-1.5">To</label>
+                            <div className="flex flex-wrap gap-1">
+                              {TIME_OPTIONS.filter(t => t > range.start).map((t) => (
+                                <button key={t} type="button" onClick={() => updateDayRange(key, "end", t)}
+                                  className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer border ${
+                                    range.end === t
+                                      ? "bg-primary text-white border-primary"
+                                      : "bg-white text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                                  }`}>
+                                  {formatTime(t)}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                         {slots.length > 0 ? (
-                          <div className="flex flex-wrap gap-1.5">
-                            {slots.map((t) => (
-                              <span key={t} className="bg-pastel-pink text-primary text-xs font-semibold px-2.5 py-1 rounded-full">{t}</span>
-                            ))}
+                          <div>
+                            <p className="text-xs text-muted mb-1.5">{slots.length} slots generated:</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {slots.map((t) => (
+                                <span key={t} className="bg-pastel-pink text-primary text-xs font-semibold px-2.5 py-1 rounded-full">{formatTime(t)}</span>
+                              ))}
+                            </div>
                           </div>
                         ) : (
                           <p className="text-xs text-red-400">No slots fit in this range{form.duration ? ` with ${form.duration} min duration` : ". Select a duration first"}.</p>
