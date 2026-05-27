@@ -21,15 +21,6 @@ const STEPS = [
   { num: "03", title: "Show Up & Shine", desc: "Arrive, relax, and leave looking absolutely flawless." },
 ];
 
-const GALLERY_FALLBACK = [
-  { title: "French Rose Acrylics", img: "https://images.unsplash.com/photo-1604654894610-df4906b147c0?auto=format&fit=crop&w=600&q=80", slug: "French Rose Acrylics" },
-  { title: "Glazed Donut Nails", img: "https://images.unsplash.com/photo-1632345031435-8797b2d58045?auto=format&fit=crop&w=600&q=80", slug: "Glazed Donut Nails" },
-  { title: "Vanilla Velvet Set", img: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=600&q=80", slug: "Vanilla Velvet Set" },
-  { title: "Lash Lift & Glow", img: "https://images.unsplash.com/photo-1583001931096-959e9a1a6223?auto=format&fit=crop&w=600&q=80", slug: "Lash Lift & Glow" },
-  { title: "Nail Art Design", img: "https://images.unsplash.com/photo-1604654894610-df4906b147c0?auto=format&fit=crop&w=600&q=80", slug: "Vanilla Velvet Set" },
-  { title: "Classic Manicure", img: "https://images.unsplash.com/photo-1632345031435-8797b2d58045?auto=format&fit=crop&w=600&q=80", slug: "Classic Manicure" },
-];
-
 const PERKS = [
   "No deposits, no hidden fees",
   "Instant confirmation",
@@ -66,22 +57,14 @@ const TESTIMONIALS = [
 
 export default async function LandingPage() {
   let dbServices: Awaited<ReturnType<typeof prisma.service.findMany>> = [];
-  let dbGallery: Awaited<ReturnType<typeof prisma.galleryImage.findMany>> = [];
 
   try {
-    [dbServices, dbGallery] = await Promise.all([
-      prisma.service.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
-      prisma.galleryImage.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
-    ]);
+    dbServices = await prisma.service.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   } catch {
     // DB not reachable — render with fallback content
   }
 
   const services = dbServices.length > 0 ? dbServices : null;
-  const gallery = dbGallery.length > 0
-    ? dbGallery.map((g) => ({ title: g.title, img: g.imageUrl, slug: g.serviceId ?? g.title }))
-    : GALLERY_FALLBACK;
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
 
@@ -95,7 +78,6 @@ export default async function LandingPage() {
           <nav className="hidden sm:flex items-center gap-8 text-sm font-medium text-glam-text/70" aria-label="Main navigation">
             <a href="#services" className="hover:text-primary transition-colors duration-150 cursor-pointer">Services</a>
             <a href="#how" className="hover:text-primary transition-colors duration-150 cursor-pointer">How It Works</a>
-            <a href="#gallery" className="hover:text-primary transition-colors duration-150 cursor-pointer">Gallery</a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -166,17 +148,6 @@ export default async function LandingPage() {
               </a>
             </div>
 
-            {/* Social proof */}
-            <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className="flex -space-x-2.5" aria-hidden="true">
-                {["#FECDD3","#FCA5A5","#FDA4AF","#F9A8D4","#F0ABFC"].map((c, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: c }} />
-                ))}
-              </div>
-              <p className="text-sm text-muted">
-                Trusted by <strong className="text-primary font-semibold">200+</strong> happy clients
-              </p>
-            </div>
           </div>
 
           {/* ── Right: decorative image card (desktop only) ── */}
@@ -291,44 +262,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          GALLERY
-      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section id="gallery" className="px-6 py-24 max-w-6xl mx-auto w-full scroll-mt-16">
-        <div className="text-center mb-14">
-          <span className="inline-block text-xs font-bold text-primary uppercase tracking-[0.12em] bg-pastel-pink px-4 py-1.5 rounded-full mb-4">
-            Our Work
-          </span>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-glam-text">Mastered Creations</h2>
-          <p className="text-muted mt-3 text-sm">Real results. Real clients.</p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-          {gallery.map((item, i) => (
-            <Link
-              key={i}
-              href={`/book?service=${encodeURIComponent(item.slug)}`}
-              className="group relative rounded-2xl overflow-hidden aspect-square block bg-pastel-pink cursor-pointer"
-              aria-label={`Book ${item.title}`}
-            >
-              <img
-                src={item.img}
-                alt={item.title}
-                loading={i < 3 ? "eager" : "lazy"}
-                width={600}
-                height={600}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-white font-semibold text-sm">{item.title}</span>
-                  <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/30">Book</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           TESTIMONIALS
@@ -491,7 +424,6 @@ export default async function LandingPage() {
                   { label: "My Account", href: "/account/login" },
                   { label: "Services", href: "#services" },
                   { label: "How It Works", href: "#how" },
-                  { label: "Gallery", href: "#gallery" },
                 ].map(({ label, href }) => (
                   <li key={label}>
                     <Link href={href} className="text-sm text-white/55 hover:text-primary transition-colors duration-150 cursor-pointer">
