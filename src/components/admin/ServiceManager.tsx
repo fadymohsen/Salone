@@ -321,11 +321,10 @@ export default function ServiceManager() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-2.5 bg-pastel-pink text-xs font-bold text-primary uppercase tracking-wide">
             <span className="w-9" />
             <span>Service</span>
             <span>Price</span>
-            <span>Popular</span>
             <span>Home</span>
             <span>Status</span>
             <span>Actions</span>
@@ -339,7 +338,7 @@ export default function ServiceManager() {
               className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100"
             >
               {/* Desktop row */}
-              <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_80px_120px_100px] gap-3 px-5 py-3.5 items-center">
+              <div className="hidden md:grid grid-cols-[auto_1fr_100px_80px_120px_100px] gap-3 px-5 py-3.5 items-center">
                 <div className="w-9 h-9 rounded-xl bg-pastel-pink flex items-center justify-center shrink-0">
                   <IconComp size={16} className="text-primary" aria-hidden="true" />
                 </div>
@@ -350,11 +349,6 @@ export default function ServiceManager() {
                   )}
                 </div>
                 <span className="font-bold text-primary text-sm tabular-nums">{s.price} EGP</span>
-                <div className="flex items-center">
-                  {s.popular && (
-                    <Star size={13} className="text-yellow-500 fill-yellow-400" aria-label="Popular" />
-                  )}
-                </div>
                 <button
                   onClick={() => toggleFeatured(s)}
                   title={s.featured ? "Remove from homepage" : "Show on homepage"}
@@ -402,7 +396,7 @@ export default function ServiceManager() {
                 <div className="flex-1">
                   <p className="font-bold text-sm text-glam-text">{s.name}</p>
                   <p className="text-xs text-muted mt-0.5">
-                    {s.price} EGP{s.popular ? " · Popular" : ""}
+                    {s.price} EGP
                   </p>
                 </div>
                 <button
