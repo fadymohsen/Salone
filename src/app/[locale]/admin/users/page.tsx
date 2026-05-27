@@ -86,7 +86,7 @@ export default function UsersPage() {
             <span>{u.client}</span>
             <span className="text-center">{u.contact}</span>
             <span className="text-center">{u.pointsCol}</span>
-            <span>{u.bookingsCol}</span>
+            <span className="text-center">{u.bookingsCol}</span>
           </div>
 
           {filtered.map((usr) => (
@@ -117,7 +117,7 @@ export default function UsersPage() {
                   <span className="font-bold text-sm text-glam-text tabular-nums">{usr.points}</span>
                 </div>
                 <button onClick={() => setBookingsPopup(usr)}
-                  className="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors duration-150">
+                  className="flex items-center justify-center gap-1 cursor-pointer hover:text-primary transition-colors duration-150">
                   <CalendarDays size={12} className="text-muted" aria-hidden="true" />
                   <span className="text-sm text-muted tabular-nums font-bold hover:text-primary">{usr._count.bookings}</span>
                 </button>
