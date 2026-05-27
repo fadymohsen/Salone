@@ -179,7 +179,8 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
                 return (
                   <div key={s.id} className="group relative bg-white rounded-3xl p-6 border border-border hover:border-primary/30 hover:shadow-xl hover:shadow-primary/8 transition-all duration-300 flex flex-col">
                     {s.popular && (
-                      <span className="absolute top-4 end-4 text-xs font-bold text-primary bg-pastel-pink px-2.5 py-1 rounded-full">
+                      <span className="absolute top-4 end-4 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                         {t.services.mostPopular}
                       </span>
                     )}

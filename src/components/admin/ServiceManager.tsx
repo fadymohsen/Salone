@@ -147,6 +147,7 @@ export default function ServiceManager() {
   const [saving, setSaving] = useState(false);
   const [newTime, setNewTime] = useState("");
   const [toast, setToast] = useState<{ msg: string; icon: "home" | "star" } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Service | null>(null);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -238,9 +239,9 @@ export default function ServiceManager() {
     fetchServices();
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-    await fetch(`/api/admin/services/${id}`, { method: "DELETE" });
+  const handleDelete = async (service: Service) => {
+    await fetch(`/api/admin/services/${service.id}`, { method: "DELETE" });
+    setConfirmDelete(null);
     fetchServices();
   };
 
@@ -418,7 +419,7 @@ export default function ServiceManager() {
                     <Pencil size={13} aria-hidden="true" />
                   </button>
                   <button
-                    onClick={() => handleDelete(s.id, s.name)}
+                    onClick={() => setConfirmDelete(s)}
                     title="Delete"
                     className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 hover:bg-red-500 hover:text-white transition-all duration-150 cursor-pointer"
                   >
@@ -470,7 +471,7 @@ export default function ServiceManager() {
                   <Pencil size={13} aria-hidden="true" />
                 </button>
                 <button
-                  onClick={() => handleDelete(s.id, s.name)}
+                  onClick={() => setConfirmDelete(s)}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 cursor-pointer"
                 >
                   <Trash2 size={13} aria-hidden="true" />
@@ -763,6 +764,34 @@ export default function ServiceManager() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Branded Confirm Delete Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDelete(null); }}>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                <Trash2 size={20} className="text-red-500" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-serif font-bold text-glam-text">Delete Service</p>
+                <p className="text-sm text-muted mt-0.5">Are you sure you want to delete <strong className="text-glam-text">{confirmDelete.name}</strong>? This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)}
+                className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">
+                Cancel
+              </button>
+              <button onClick={() => handleDelete(confirmDelete)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all cursor-pointer min-h-[48px]">
+                <Trash2 size={14} aria-hidden="true" /> Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
