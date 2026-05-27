@@ -9,21 +9,30 @@ async function awardPointsIfCompleted(bookingId: string, previousStatus: string,
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   if (!booking?.userId) return;
 
+  // 1 EGP = 1 point — award points based on the amount paid
+  // If no amount recorded, look up the service price
+  let pointsToAward = booking.amount ?? 0;
+  if (pointsToAward === 0) {
+    const service = await prisma.service.findUnique({ where: { name: booking.serviceType } });
+    pointsToAward = service?.price ?? 0;
+  }
+
+  if (pointsToAward <= 0) return;
+
   const config = await prisma.pointsConfig.findFirst();
-  const pointsPerBooking = config?.pointsPerBooking ?? 10;
   const threshold = config?.pointsThreshold ?? 100;
   const couponDiscount = config?.couponDiscount ?? 15;
 
   await prisma.$transaction(async (tx) => {
-    await tx.booking.update({ where: { id: bookingId }, data: { pointsEarned: pointsPerBooking } });
+    await tx.booking.update({ where: { id: bookingId }, data: { pointsEarned: pointsToAward } });
 
     const user = await tx.user.update({
       where: { id: booking.userId! },
-      data: { points: { increment: pointsPerBooking } },
+      data: { points: { increment: pointsToAward } },
     });
 
     await tx.pointsTransaction.create({
-      data: { userId: booking.userId!, points: pointsPerBooking, description: `Completed booking: ${booking.serviceType}` },
+      data: { userId: booking.userId!, points: pointsToAward, description: `Completed booking: ${booking.serviceType} (${pointsToAward} EGP)` },
     });
 
     // Auto-generate coupon if threshold reached

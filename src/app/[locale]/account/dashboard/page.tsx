@@ -16,7 +16,7 @@ type Booking = {
 };
 type Coupon = { id: string; code: string; discount: number; usageCount: number; maxUsage: number | null };
 type CouponsData = { coupons: Coupon[]; threshold: number; pointsPerBooking: number; couponDiscount: number; totalEarned: number; totalRedeemed: number };
-type RedeemService = { id: string; name: string; nameAr: string | null; pointsPrice: number; availableDays: string; timeSlots: string };
+type RedeemService = { id: string; name: string; nameAr: string | null; price: number; pointsPrice: number; rewardDiscount: number; availableDays: string; timeSlots: string };
 
 const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-blue-50 text-blue-600 border-blue-100",
@@ -279,17 +279,18 @@ export default function DashboardPage() {
               <Star size={15} className="text-primary" aria-hidden="true" />
               {locale === "ar" ? "استبدال النقاط بخدمة" : "Redeem Points for a Service"}
             </h2>
-            <p className="text-xs text-muted">{locale === "ar" ? "اختاري خدمة للحصول عليها مجاناً باستخدام نقاطك" : "Choose a service to get for free using your points"}</p>
+            <p className="text-xs text-muted">{locale === "ar" ? "استخدمي نقاطك للحصول على خصم على خدمات مختارة" : "Use your points to get a discount on selected services"}</p>
 
             <div className="space-y-2">
               {redeemServices.map((s) => {
                 const canAfford = user.points >= s.pointsPrice;
                 const isSelected = redeemId === s.id;
+                const discountedPrice = s.price - s.pointsPrice;
                 return (
                   <button key={s.id} type="button"
                     onClick={() => { if (canAfford) { setRedeemId(isSelected ? null : s.id); setRedeemDate(""); setRedeemTime(""); } }}
                     disabled={!canAfford}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border text-start transition-all duration-150 min-h-[52px] ${
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border text-start transition-all duration-150 min-h-[56px] ${
                       isSelected ? "border-primary ring-2 ring-primary/15 bg-primary/5" :
                       canAfford ? "border-border bg-background hover:border-primary/40 cursor-pointer" :
                       "border-border bg-background opacity-50 cursor-not-allowed"
@@ -298,8 +299,13 @@ export default function DashboardPage() {
                       <p className={`text-sm font-bold truncate ${isSelected ? "text-primary" : "text-glam-text"}`}>
                         {locale === "ar" ? (s.nameAr || s.name) : s.name}
                       </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-muted line-through">{s.price} {locale === "ar" ? "ج.م" : "EGP"}</span>
+                        <span className="text-xs font-bold text-green-600">{discountedPrice} {locale === "ar" ? "ج.م" : "EGP"}</span>
+                        <span className="text-xs font-bold text-primary bg-pastel-pink px-1.5 py-0.5 rounded-full">-{s.rewardDiscount}%</span>
+                      </div>
                       {!canAfford && (
-                        <p className="text-xs text-red-400 mt-0.5">{locale === "ar" ? "نقاط غير كافية" : "Not enough points"}</p>
+                        <p className="text-xs text-red-400 mt-0.5">{locale === "ar" ? `تحتاجين ${s.pointsPrice - user.points} نقطة إضافية` : `Need ${s.pointsPrice - user.points} more points`}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">

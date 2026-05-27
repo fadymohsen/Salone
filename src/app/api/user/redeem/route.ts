@@ -48,8 +48,8 @@ export async function POST(request: Request) {
           bookingTime,
           status: "confirmed",
           paymentMethod: "points",
-          paymentStatus: "paid",
-          amount: 0,
+          paymentStatus: "pending",
+          amount: service.rewardDiscount ? service.price - service.pointsPrice : 0,
         },
       }),
     ]);

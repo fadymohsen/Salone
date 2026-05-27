@@ -18,6 +18,7 @@ export async function GET() {
       timeSlots: true,
       categoryId: true,
       pointsPrice: true,
+      rewardDiscount: true,
       category: { select: { id: true, name: true, nameAr: true } },
     },
   });
