@@ -348,10 +348,7 @@ export default function ServiceManager() {
                   <IconComp size={16} className="text-primary" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="font-bold text-sm text-glam-text">{s.name}</p>
-                  {s.description && (
-                    <p className="text-xs text-muted truncate max-w-xs">{s.description}</p>
-                  )}
+                  <p className="font-bold text-sm text-glam-text text-center">{s.name}</p>
                 </div>
                 <span className="font-bold text-primary text-sm tabular-nums text-center">{s.price} EGP</span>
                 <div className="flex justify-center">
