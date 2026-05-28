@@ -114,7 +114,8 @@ export default function UsersPage() {
 
   return (
     <div className="px-6 py-8 max-w-4xl mx-auto">
-      <div className="mb-6 flex items-start justify-between gap-4">
+      {/* Desktop header */}
+      <div className="mb-6 hidden md:flex items-start justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-bold text-glam-text">{u.title}</h1>
           <p className="text-sm text-muted mt-0.5">{u.subtitle}</p>
@@ -129,6 +130,21 @@ export default function UsersPage() {
             <UserPlus size={14} aria-hidden="true" /> Add Client
           </button>
         </div>
+      </div>
+      {/* Mobile header */}
+      <div className="mb-6 md:hidden space-y-3">
+        <div>
+          <h1 className="font-serif text-2xl font-bold text-glam-text">{u.title}</h1>
+          <p className="text-sm text-muted mt-0.5">{u.subtitle}</p>
+        </div>
+        <div className="flex items-center gap-2 bg-pastel-pink/50 px-4 py-2 rounded-xl border border-primary/10 w-fit">
+          <Users size={14} className="text-primary" aria-hidden="true" />
+          <span className="text-sm font-bold text-primary">{users.length} {u.total}</span>
+        </div>
+        <button onClick={() => { setShowCreateClient(true); setNewClient({ name: "", phone: "", email: "" }); setCreatedCreds(null); setCreateError(""); }}
+          className="w-full flex items-center justify-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]">
+          <UserPlus size={14} aria-hidden="true" /> Add Client
+        </button>
       </div>
 
       <input type="search" placeholder={u.searchPlaceholder} value={search}
