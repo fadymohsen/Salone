@@ -1,4 +1,5 @@
 import AdminNav from "@/components/admin/AdminNav";
+import MobileSidebar from "@/components/admin/MobileSidebar";
 import { Sparkles } from "lucide-react";
 import LangSwitcher from "@/components/LangSwitcher";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -33,12 +34,8 @@ export default async function AdminLayout({
 
       {/* Page content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 pb-20 md:pb-8">{children}</main>
-      </div>
-
-      {/* Mobile bottom nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-pastel-pink z-50 safe-area-pb">
-        <AdminNav mobile />
+        <MobileSidebar />
+        <main className="flex-1 pb-8">{children}</main>
       </div>
     </div>
   );
