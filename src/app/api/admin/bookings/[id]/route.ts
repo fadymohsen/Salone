@@ -9,10 +9,13 @@ async function awardPointsIfCompleted(bookingId: string, previousStatus: string,
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   if (!booking?.userId) return;
 
-  // 1 EGP = 1 point — award points based on the amount paid
-  // If no amount recorded, look up the service price
-  let pointsToAward = booking.amount ?? 0;
-  if (pointsToAward === 0) {
+  // 1 EGP = 1 point — award points based on the actual amount paid
+  // If amount is null (not recorded), look up the service price as fallback
+  // If amount is 0 (free via loyalty/promo), award 0 points
+  let pointsToAward: number;
+  if (booking.amount !== null) {
+    pointsToAward = booking.amount;
+  } else {
     const service = await prisma.service.findUnique({ where: { name: booking.serviceType } });
     pointsToAward = service?.price ?? 0;
   }

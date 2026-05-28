@@ -34,25 +34,27 @@ export default function PointsConfigManager() {
     });
   }, []);
 
-  const handleToggleReward = async (service: Service, discount: number | null) => {
+  const handleToggleReward = async (service: Service, discount: number | null, points: number | null) => {
     setSavingId(service.id);
-    const pointsPrice = discount != null ? Math.round(service.price * discount / 100) : null;
     const res = await fetch(`/api/admin/services/${service.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...service, rewardDiscount: discount, pointsPrice }),
+      body: JSON.stringify({ ...service, rewardDiscount: discount, pointsPrice: points }),
     });
     if (res.ok) {
-      setServices(prev => prev.map(s => s.id === service.id ? { ...s, rewardDiscount: discount, pointsPrice } : s));
-      showToast(discount != null ? `${service.name} added to rewards (${discount}% off for ${pointsPrice} pts)` : `${service.name} removed from rewards`);
+      setServices(prev => prev.map(s => s.id === service.id ? { ...s, rewardDiscount: discount, pointsPrice: points } : s));
+      showToast(discount != null ? `${service.name} added to rewards` : `${service.name} removed from rewards`);
     }
     setSavingId(null);
   };
 
-  const handleDiscountChange = async (service: Service, discountStr: string) => {
-    const discount = parseInt(discountStr, 10);
-    if (isNaN(discount) || discount < 1 || discount > 100) return;
-    await handleToggleReward(service, discount);
+  const handleRewardUpdate = async (service: Service, field: "rewardDiscount" | "pointsPrice", value: string) => {
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < 1) return;
+    if (field === "rewardDiscount" && num > 100) return;
+    const discount = field === "rewardDiscount" ? num : (service.rewardDiscount ?? 50);
+    const points = field === "pointsPrice" ? num : (service.pointsPrice ?? Math.round(service.price * discount / 100));
+    await handleToggleReward(service, discount, points);
   };
 
   if (loading) {
@@ -97,46 +99,70 @@ export default function PointsConfigManager() {
             <Gift size={16} className="text-primary" aria-hidden="true" />
             Service Rewards
           </h2>
-          <p className="text-xs text-muted mt-1">Select services to include in the loyalty program and set the discount %. Users redeem points equal to the discounted amount.</p>
+          <p className="text-xs text-muted mt-1">Select services, set the discount %, and choose how many points users need to redeem.</p>
         </div>
 
         {/* Currently in rewards */}
         {rewardServices.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-bold text-primary uppercase tracking-wide">In Rewards Program</p>
-            {rewardServices.map(s => (
-              <div key={s.id} className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-2xl px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-glam-text truncate">{s.name}</p>
-                  <p className="text-xs text-muted">{s.price} EGP · {s.rewardDiscount}% off · <strong className="text-primary">{s.pointsPrice} pts</strong> to redeem</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={s.rewardDiscount ?? ""}
-                      onChange={(e) => {
-                        // Optimistic local update
-                        const val = e.target.value;
-                        setServices(prev => prev.map(sv => sv.id === s.id ? { ...sv, rewardDiscount: val ? parseInt(val, 10) : null } : sv));
-                      }}
-                      onBlur={(e) => handleDiscountChange(s, e.target.value)}
-                      className="w-16 bg-white border border-border rounded-lg px-2 py-1.5 text-xs text-center font-bold focus:outline-none focus:border-primary"
-                    />
-                    <Percent size={12} className="text-muted" aria-hidden="true" />
+            {rewardServices.map(s => {
+              const discountedPrice = Math.round(s.price - s.price * (s.rewardDiscount ?? 0) / 100);
+              return (
+                <div key={s.id} className="bg-primary/5 border border-primary/15 rounded-2xl px-4 py-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-glam-text truncate">{s.name}</p>
+                      <p className="text-xs text-muted">{s.price} EGP → <strong className="text-green-600">{discountedPrice} EGP</strong></p>
+                    </div>
+                    <button
+                      onClick={() => handleToggleReward(s, null, null)}
+                      disabled={savingId === s.id}
+                      className="text-xs font-bold text-red-400 hover:text-red-600 transition-colors cursor-pointer px-2 py-1 shrink-0"
+                    >
+                      {savingId === s.id ? <Loader2 size={12} className="animate-spin" /> : "Remove"}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleToggleReward(s, null)}
-                    disabled={savingId === s.id}
-                    className="text-xs font-bold text-red-400 hover:text-red-600 transition-colors cursor-pointer px-2 py-1"
-                  >
-                    {savingId === s.id ? <Loader2 size={12} className="animate-spin" /> : "Remove"}
-                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-muted mb-1">Discount %</label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={1}
+                          max={100}
+                          value={s.rewardDiscount ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setServices(prev => prev.map(sv => sv.id === s.id ? { ...sv, rewardDiscount: val ? parseInt(val, 10) : null } : sv));
+                          }}
+                          onBlur={(e) => handleRewardUpdate(s, "rewardDiscount", e.target.value)}
+                          className="w-full bg-white border border-border rounded-lg px-2 py-2 text-sm text-center font-bold focus:outline-none focus:border-primary"
+                        />
+                        <Percent size={12} className="text-muted shrink-0" aria-hidden="true" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted mb-1">Points Needed</label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={1}
+                          value={s.pointsPrice ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setServices(prev => prev.map(sv => sv.id === s.id ? { ...sv, pointsPrice: val ? parseInt(val, 10) : null } : sv));
+                          }}
+                          onBlur={(e) => handleRewardUpdate(s, "pointsPrice", e.target.value)}
+                          className="w-full bg-white border border-border rounded-lg px-2 py-2 text-sm text-center font-bold focus:outline-none focus:border-primary"
+                        />
+                        <Star size={12} className="text-primary shrink-0" aria-hidden="true" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -151,7 +177,7 @@ export default function PointsConfigManager() {
                   <p className="text-xs text-muted">{s.price} EGP</p>
                 </div>
                 <button
-                  onClick={() => handleToggleReward(s, 50)}
+                  onClick={() => handleToggleReward(s, 50, Math.round(s.price * 50 / 100))}
                   disabled={savingId === s.id}
                   className="flex items-center gap-1.5 text-xs font-bold text-primary bg-pastel-pink px-3 py-2 rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer shrink-0"
                 >
