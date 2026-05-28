@@ -478,54 +478,47 @@ export default function ServiceManager() {
                 </div>
               </div>
               {/* Mobile row */}
-              <div className="md:hidden px-4 py-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-pastel-pink flex items-center justify-center shrink-0">
-                  <IconComp size={16} className="text-primary" aria-hidden="true" />
+              <div className="md:hidden px-4 py-3 space-y-2.5">
+                {/* Line 1: Name + Price */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-pastel-pink flex items-center justify-center shrink-0">
+                      <IconComp size={14} className="text-primary" aria-hidden="true" />
+                    </div>
+                    <p className="font-bold text-sm text-glam-text truncate">{s.name}</p>
+                  </div>
+                  <span className="text-sm font-bold text-primary tabular-nums shrink-0">{s.price} EGP</span>
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-sm text-glam-text">{s.name}</p>
-                  <p className="text-xs text-muted mt-0.5">
-                    {s.price} EGP
-                  </p>
+                {/* Line 2: Actions */}
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => togglePopular(s)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+                      s.popular ? "bg-yellow-400 text-white" : "bg-background text-muted border border-border"
+                    }`}>
+                    <Star size={12} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => toggleFeatured(s)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+                      s.featured ? "bg-primary text-white" : "bg-background text-muted border border-border"
+                    }`}>
+                    <Home size={12} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => toggleActive(s)}
+                    className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-full border cursor-pointer transition-all duration-150 ${
+                      s.isActive ? "bg-green-50 text-green-600 border-green-100" : "bg-red-50 text-red-400 border-red-100"
+                    }`}>
+                    <Power size={10} aria-hidden="true" /> {s.isActive ? "On" : "Off"}
+                  </button>
+                  <div className="flex-1" />
+                  <button onClick={() => openEdit(s)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink cursor-pointer">
+                    <Pencil size={13} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => setConfirmDelete(s)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 cursor-pointer">
+                    <Trash2 size={13} aria-hidden="true" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => togglePopular(s)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
-                    s.popular ? "bg-yellow-400 text-white" : "bg-background text-muted border border-border"
-                  }`}
-                >
-                  <Star size={12} aria-hidden="true" />
-                </button>
-                <button
-                  onClick={() => toggleFeatured(s)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
-                    s.featured ? "bg-primary text-white" : "bg-background text-muted border border-border"
-                  }`}
-                >
-                  <Home size={12} aria-hidden="true" />
-                </button>
-                <button
-                  onClick={() => toggleActive(s)}
-                  className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-full border cursor-pointer transition-all duration-150 ${
-                    s.isActive
-                      ? "bg-green-50 text-green-600 border-green-100"
-                      : "bg-red-50 text-red-400 border-red-100"
-                  }`}
-                >
-                  <Power size={10} aria-hidden="true" /> {s.isActive ? "On" : "Off"}
-                </button>
-                <button
-                  onClick={() => openEdit(s)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-primary bg-pastel-pink cursor-pointer"
-                >
-                  <Pencil size={13} aria-hidden="true" />
-                </button>
-                <button
-                  onClick={() => setConfirmDelete(s)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 bg-red-50 cursor-pointer"
-                >
-                  <Trash2 size={13} aria-hidden="true" />
-                </button>
               </div>
             </div>
           );
