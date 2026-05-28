@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Star, CalendarDays, Loader2, Mail, Phone, X, MessageCircle, CheckCircle2, XCircle, Clock, Trash2, UserPlus, Copy } from "lucide-react";
+import { Users, Star, CalendarDays, Loader2, Mail, Phone, X, MessageCircle, CheckCircle2, XCircle, Clock, Trash2, UserPlus, Copy, KeyRound } from "lucide-react";
 import { fmt12 } from "@/lib/fmt12";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 
@@ -45,6 +45,9 @@ export default function UsersPage() {
   const [creatingClient, setCreatingClient] = useState(false);
   const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string } | null>(null);
   const [createError, setCreateError] = useState("");
+  const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [resetCreds, setResetCreds] = useState<{ email: string; password: string } | null>(null);
   const [bookingsPopup, setBookingsPopup] = useState<UserRow | null>(null);
 
   const fetchUsers = () => {
@@ -63,6 +66,18 @@ export default function UsersPage() {
     setConfirmDeleteUser(null);
     setSelectedUser(null);
     fetchUsers();
+  };
+
+  const handleResetPassword = async (usr: UserRow) => {
+    setResettingPassword(true);
+    try {
+      const res = await fetch(`/api/admin/users/${usr.id}`, { method: "PUT" });
+      const data = await res.json();
+      if (res.ok) {
+        setResetCreds({ email: data.email, password: data.password });
+      }
+    } catch {}
+    setResettingPassword(false);
   };
 
   const handleCreateClient = async () => {
@@ -284,11 +299,17 @@ export default function UsersPage() {
                 )}
               </div>
 
-              {/* Delete */}
-              <button onClick={() => { setSelectedUser(null); setConfirmDeleteUser(selectedUser); }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer">
-                <Trash2 size={13} aria-hidden="true" /> Delete Client
-              </button>
+              {/* Reset Password + Delete */}
+              <div className="flex gap-2">
+                <button onClick={() => { setResetPasswordUser(selectedUser); setResetCreds(null); setSelectedUser(null); }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-amber-200 text-amber-600 text-xs font-bold hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all cursor-pointer">
+                  <KeyRound size={13} aria-hidden="true" /> Reset Password
+                </button>
+                <button onClick={() => { setSelectedUser(null); setConfirmDeleteUser(selectedUser); }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer">
+                  <Trash2 size={13} aria-hidden="true" /> Delete Client
+                </button>
+              </div>
 
               {/* Bookings */}
               {selectedUser.bookings.length > 0 && (
@@ -447,6 +468,62 @@ export default function UsersPage() {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetPasswordUser && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setResetPasswordUser(null); }}>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 space-y-4">
+            {!resetCreds ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <KeyRound size={20} className="text-amber-500" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="font-serif font-bold text-glam-text">Reset Password</p>
+                    <p className="text-sm text-muted mt-0.5">Generate a new password for <strong className="text-glam-text">{resetPasswordUser.name}</strong>?</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setResetPasswordUser(null)}
+                    className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">
+                    Cancel
+                  </button>
+                  <button onClick={() => handleResetPassword(resetPasswordUser)} disabled={resettingPassword}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-all cursor-pointer min-h-[48px]">
+                    {resettingPassword ? <Loader2 size={14} className="animate-spin" /> : <><KeyRound size={14} /> Reset</>}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-green-50 border border-green-200 rounded-2xl p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-green-500" />
+                    <p className="text-sm font-bold text-green-700">Password reset!</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-green-100">
+                      <div><p className="text-xs text-muted">Email</p><p className="text-sm font-bold text-glam-text">{resetCreds.email}</p></div>
+                      <button type="button" onClick={() => navigator.clipboard.writeText(resetCreds.email)} className="text-primary hover:text-secondary cursor-pointer"><Copy size={14} /></button>
+                    </div>
+                    <div className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-green-100">
+                      <div><p className="text-xs text-muted">New Password</p><p className="text-sm font-bold text-glam-text font-mono">{resetCreds.password}</p></div>
+                      <button type="button" onClick={() => navigator.clipboard.writeText(resetCreds.password)} className="text-primary hover:text-secondary cursor-pointer"><Copy size={14} /></button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-green-600">Share the new password with the client.</p>
+                </div>
+                <button onClick={() => setResetPasswordUser(null)}
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all cursor-pointer min-h-[48px]">
+                  Done
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
