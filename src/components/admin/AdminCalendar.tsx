@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, X, Loader2, Clock } from "lucide-react";
+import { fmt12 } from "@/lib/fmt12";
 
 type Props = { dayCountMap: Record<string, number>; today: string };
 
@@ -137,7 +138,7 @@ export default function AdminCalendar({ dayCountMap, today }: Props) {
               {dayBookings.map(b => (
                 <div key={b.id} className="flex items-center gap-3 bg-background rounded-xl px-3 py-2.5">
                   <span className="flex items-center gap-1 text-xs font-bold text-primary bg-pastel-pink px-2.5 py-1 rounded-lg shrink-0">
-                    <Clock size={10} aria-hidden="true" /> {b.bookingTime}
+                    <Clock size={10} aria-hidden="true" /> {fmt12(b.bookingTime)}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-glam-text truncate">{b.clientName}</p>

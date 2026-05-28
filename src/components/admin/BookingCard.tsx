@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Booking } from "@prisma/client";
+import { fmt12 } from "@/lib/fmt12";
 
 export default function BookingCard({ booking }: { booking: Booking }) {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function BookingCard({ booking }: { booking: Booking }) {
     <div className="bg-white rounded-2xl border border-pastel-pink p-4 flex items-start gap-4">
       {/* Time badge */}
       <div className="bg-pastel-pink text-primary font-black text-sm rounded-xl px-3 py-2 shrink-0">
-        {booking.bookingTime}
+        {fmt12(booking.bookingTime)}
       </div>
 
       {/* Details */}
