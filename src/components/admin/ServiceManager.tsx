@@ -762,14 +762,12 @@ export default function ServiceManager() {
                       return { h: hh % 12 || 12, m: mm, p: hh >= 12 ? "PM" : "AM" };
                     };
                     const to24 = (h: number, m: number, p: string): string => {
-                      let h24 = p === "AM" ? (h === 12 ? 0 : h) : (h === 12 ? 12 : h + 12);
+                      const h24 = p === "AM" ? (h === 12 ? 0 : h) : (h === 12 ? 12 : h + 12);
                       return `${String(h24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
                     };
                     const startP = parse12(range.start);
                     const endP = parse12(range.end);
                     const invalid = range.end <= range.start;
-                    const HOURS = [1,2,3,4,5,6,7,8,9,10,11,12];
-                    const MINUTES = [0, 15, 30, 45];
 
                     const updateFrom = (h?: number, m?: number, p?: string) => {
                       const nh = h ?? startP.h, nm = m ?? startP.m, np = p ?? startP.p;
@@ -783,21 +781,48 @@ export default function ServiceManager() {
                       if (val > range.start) updateDayRange(key, "end", val);
                     };
 
-                    const clockSelect = (label2: string, value: number | string, options: (number | string)[], onChange: (v: number | string) => void, width: string) => (
-                      <div className={width}>
-                        <div className="flex flex-col items-center gap-1 bg-white border border-border rounded-xl p-1.5 max-h-[120px] overflow-y-auto">
-                          {options.map((opt) => (
-                            <button key={opt} type="button" onClick={() => onChange(opt)}
-                              className={`w-full py-1.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer ${
-                                String(value) === String(opt)
-                                  ? "bg-primary text-white"
-                                  : "text-glam-text hover:bg-pastel-pink hover:text-primary"
-                              }`}>
-                              {typeof opt === "number" ? String(opt).padStart(2, "0") : opt}
-                            </button>
-                          ))}
+                    const TimePicker = ({ label2, parsed, onUpdate }: { label2: string; parsed: { h: number; m: number; p: string }; onUpdate: (h?: number, m?: number, p?: string) => void }) => (
+                      <div>
+                        <label className="block text-xs font-bold text-muted mb-2">{label2}</label>
+                        <div className="bg-white border border-border rounded-2xl p-3 space-y-2.5">
+                          {/* Hour */}
+                          <div>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-wide mb-1.5">Hour</p>
+                            <div className="grid grid-cols-6 gap-1">
+                              {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => (
+                                <button key={h} type="button" onClick={() => onUpdate(h)}
+                                  className={`py-1.5 rounded-lg text-xs font-bold transition-all duration-100 cursor-pointer ${
+                                    parsed.h === h ? "bg-primary text-white shadow-sm" : "text-glam-text hover:bg-pastel-pink hover:text-primary"
+                                  }`}>{h}</button>
+                              ))}
+                            </div>
+                          </div>
+                          {/* Minute */}
+                          <div>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-wide mb-1.5">Min</p>
+                            <div className="grid grid-cols-4 gap-1">
+                              {[0, 15, 30, 45].map(m => (
+                                <button key={m} type="button" onClick={() => onUpdate(undefined, m)}
+                                  className={`py-1.5 rounded-lg text-xs font-bold transition-all duration-100 cursor-pointer ${
+                                    parsed.m === m ? "bg-primary text-white shadow-sm" : "text-glam-text hover:bg-pastel-pink hover:text-primary"
+                                  }`}>{String(m).padStart(2, "0")}</button>
+                              ))}
+                            </div>
+                          </div>
+                          {/* AM/PM */}
+                          <div className="grid grid-cols-2 gap-1">
+                            {(["AM", "PM"] as const).map(p => (
+                              <button key={p} type="button" onClick={() => onUpdate(undefined, undefined, p)}
+                                className={`py-2 rounded-lg text-xs font-black tracking-wide transition-all duration-100 cursor-pointer ${
+                                  parsed.p === p ? "bg-primary text-white shadow-sm" : "text-glam-text hover:bg-pastel-pink hover:text-primary"
+                                }`}>{p}</button>
+                            ))}
+                          </div>
+                          {/* Display */}
+                          <div className="text-center pt-1 border-t border-border">
+                            <span className="text-sm font-black text-primary">{parsed.h}:{String(parsed.m).padStart(2, "0")} {parsed.p}</span>
+                          </div>
                         </div>
-                        <p className="text-center text-xs text-muted mt-1">{label2}</p>
                       </div>
                     );
 
@@ -808,24 +833,8 @@ export default function ServiceManager() {
                           {label}
                         </p>
                         <div className="grid grid-cols-2 gap-4 mb-3">
-                          {/* FROM */}
-                          <div>
-                            <label className="block text-xs font-bold text-muted mb-2">From</label>
-                            <div className="flex gap-1.5">
-                              {clockSelect("Hr", startP.h, HOURS, (v) => updateFrom(v as number), "flex-1")}
-                              {clockSelect("Min", startP.m, MINUTES, (v) => updateFrom(undefined, v as number), "flex-1")}
-                              {clockSelect("", startP.p, ["AM", "PM"], (v) => updateFrom(undefined, undefined, v as string), "w-12")}
-                            </div>
-                          </div>
-                          {/* TO */}
-                          <div>
-                            <label className="block text-xs font-bold text-muted mb-2">To</label>
-                            <div className="flex gap-1.5">
-                              {clockSelect("Hr", endP.h, HOURS, (v) => updateTo(v as number), "flex-1")}
-                              {clockSelect("Min", endP.m, MINUTES, (v) => updateTo(undefined, v as number), "flex-1")}
-                              {clockSelect("", endP.p, ["AM", "PM"], (v) => updateTo(undefined, undefined, v as string), "w-12")}
-                            </div>
-                          </div>
+                          <TimePicker label2="From" parsed={startP} onUpdate={(h, m, p) => updateFrom(h, m, p)} />
+                          <TimePicker label2="To" parsed={endP} onUpdate={(h, m, p) => updateTo(h, m, p)} />
                         </div>
                         {invalid && range.end && (
                           <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-3 flex items-center gap-2">
