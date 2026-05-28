@@ -357,7 +357,7 @@ export default function ServiceManager() {
     setForm((prev) => {
       const key = String(day);
       const next = { ...prev.dayRanges };
-      if (next[key]) { delete next[key]; } else { next[key] = { start: "10:00", end: "16:00" }; }
+      if (next[key]) { delete next[key]; } else { next[key] = { start: "10:00", end: "14:00" }; }
       return { ...prev, dayRanges: next };
     });
   };
@@ -781,7 +781,13 @@ export default function ServiceManager() {
                       if (val > range.start) updateDayRange(key, "end", val);
                     };
 
-                    const TimePicker = ({ label2, parsed, onUpdate }: { label2: string; parsed: { h: number; m: number; p: string }; onUpdate: (h?: number, m?: number, p?: string) => void }) => (
+                    const TimePicker = ({ label2, parsed, onUpdate, minTime }: { label2: string; parsed: { h: number; m: number; p: string }; onUpdate: (h?: number, m?: number, p?: string) => void; minTime?: string }) => {
+                      const isDisabled = (h: number, m: number, p: string) => {
+                        if (!minTime) return false;
+                        const h24 = p === "AM" ? (h === 12 ? 0 : h) : (h === 12 ? 12 : h + 12);
+                        return `${String(h24).padStart(2, "0")}:${String(m).padStart(2, "0")}` <= minTime;
+                      };
+                      return (
                       <div>
                         <label className="block text-xs font-bold text-muted mb-2">{label2}</label>
                         <div className="bg-white border border-border rounded-2xl p-3 space-y-2.5">
@@ -789,34 +795,43 @@ export default function ServiceManager() {
                           <div>
                             <p className="text-[10px] text-muted font-bold uppercase tracking-wide mb-1.5">Hour</p>
                             <div className="grid grid-cols-6 gap-1">
-                              {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => (
-                                <button key={h} type="button" onClick={() => onUpdate(h)}
-                                  className={`py-1.5 rounded-lg text-xs font-bold transition-all duration-100 cursor-pointer ${
-                                    parsed.h === h ? "bg-primary text-white shadow-sm" : "text-glam-text hover:bg-pastel-pink hover:text-primary"
+                              {[1,2,3,4,5,6,7,8,9,10,11,12].map(h => {
+                                const dis = minTime ? isDisabled(h, parsed.m, parsed.p) && isDisabled(h, parsed.m, parsed.p === "AM" ? "PM" : parsed.p) : false;
+                                return (
+                                <button key={h} type="button" onClick={() => !dis && onUpdate(h)} disabled={dis}
+                                  className={`py-1.5 rounded-lg text-xs font-bold transition-all duration-100 ${
+                                    parsed.h === h ? "bg-primary text-white shadow-sm cursor-pointer" : dis ? "text-muted/25 cursor-not-allowed" : "text-glam-text hover:bg-pastel-pink hover:text-primary cursor-pointer"
                                   }`}>{h}</button>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                           {/* Minute */}
                           <div>
                             <p className="text-[10px] text-muted font-bold uppercase tracking-wide mb-1.5">Min</p>
                             <div className="grid grid-cols-4 gap-1">
-                              {[0, 15, 30, 45].map(m => (
-                                <button key={m} type="button" onClick={() => onUpdate(undefined, m)}
-                                  className={`py-1.5 rounded-lg text-xs font-bold transition-all duration-100 cursor-pointer ${
-                                    parsed.m === m ? "bg-primary text-white shadow-sm" : "text-glam-text hover:bg-pastel-pink hover:text-primary"
+                              {[0, 15, 30, 45].map(m => {
+                                const dis = minTime ? isDisabled(parsed.h, m, parsed.p) : false;
+                                return (
+                                <button key={m} type="button" onClick={() => !dis && onUpdate(undefined, m)} disabled={dis}
+                                  className={`py-1.5 rounded-lg text-xs font-bold transition-all duration-100 ${
+                                    parsed.m === m ? "bg-primary text-white shadow-sm cursor-pointer" : dis ? "text-muted/25 cursor-not-allowed" : "text-glam-text hover:bg-pastel-pink hover:text-primary cursor-pointer"
                                   }`}>{String(m).padStart(2, "0")}</button>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                           {/* AM/PM */}
                           <div className="grid grid-cols-2 gap-1">
-                            {(["AM", "PM"] as const).map(p => (
+                            {(["AM", "PM"] as const).map(p => {
+                              const dis = minTime ? p === "AM" && parsed.p === "AM" && isDisabled(parsed.h, parsed.m, "AM") && range.start >= "12:00" : false;
+                              return (
                               <button key={p} type="button" onClick={() => onUpdate(undefined, undefined, p)}
                                 className={`py-2 rounded-lg text-xs font-black tracking-wide transition-all duration-100 cursor-pointer ${
                                   parsed.p === p ? "bg-primary text-white shadow-sm" : "text-glam-text hover:bg-pastel-pink hover:text-primary"
                                 }`}>{p}</button>
-                            ))}
+                              );
+                            })}
                           </div>
                           {/* Display */}
                           <div className="text-center pt-1 border-t border-border">
@@ -824,7 +839,8 @@ export default function ServiceManager() {
                           </div>
                         </div>
                       </div>
-                    );
+                      );
+                    };
 
                     return (
                       <div key={dayIndex} className="bg-background border border-border rounded-2xl p-4">
@@ -834,7 +850,7 @@ export default function ServiceManager() {
                         </p>
                         <div className="grid grid-cols-2 gap-4 mb-3">
                           <TimePicker label2="From" parsed={startP} onUpdate={(h, m, p) => updateFrom(h, m, p)} />
-                          <TimePicker label2="To" parsed={endP} onUpdate={(h, m, p) => updateTo(h, m, p)} />
+                          <TimePicker label2="To" parsed={endP} onUpdate={(h, m, p) => updateTo(h, m, p)} minTime={range.start} />
                         </div>
                         {invalid && range.end && (
                           <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-3 flex items-center gap-2">
