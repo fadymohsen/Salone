@@ -20,14 +20,31 @@ export async function POST(
   if (booking.status !== "booked" || booking.paymentStatus === "paid")
     return NextResponse.json({ error: "This booking cannot be paid." }, { status: 400 });
 
-  const updated = await prisma.booking.update({
-    where: { id },
-    data: {
-      status: "confirmed",
-      paymentStatus: "paid",
-      paymentMethod: paymentMethod || "card",
-    },
-  });
+  const pointsToAward = booking.amount ?? 0;
 
-  return NextResponse.json(updated);
+  const txns = [
+    prisma.booking.update({
+      where: { id },
+      data: {
+        status: "confirmed",
+        paymentStatus: "paid",
+        paymentMethod: paymentMethod || "card",
+      },
+    }),
+  ];
+
+  // Award loyalty points: 1 EGP paid = 1 point
+  if (pointsToAward > 0) {
+    txns.push(
+      prisma.user.update({ where: { id: userId }, data: { points: { increment: pointsToAward } } }) as never,
+      prisma.pointsTransaction.create({
+        data: { userId, points: pointsToAward, description: `Payment for ${booking.serviceType} (${pointsToAward} EGP)` },
+      }) as never,
+      prisma.booking.update({ where: { id }, data: { pointsEarned: pointsToAward } }) as never,
+    );
+  }
+
+  await prisma.$transaction(txns);
+
+  return NextResponse.json({ success: true, pointsEarned: pointsToAward });
 }

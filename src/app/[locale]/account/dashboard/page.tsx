@@ -146,13 +146,15 @@ export default function DashboardPage() {
       if (res.ok) {
         setPayingId(null);
         setPayMethod(null);
-        // Refresh bookings + user data
-        const [bData, meData] = await Promise.all([
+        // Refresh bookings + user data + points
+        const [bData, meData, cData] = await Promise.all([
           fetch("/api/user/bookings").then(r => r.json()),
           fetch("/api/auth/me").then(r => r.json()),
+          fetch("/api/user/coupons").then(r => r.json()),
         ]);
         setBookings(Array.isArray(bData) ? bData : []);
         if (meData.user) setUser(meData.user);
+        if (cData && !cData.error) setCouponsData(cData);
       }
     } catch {}
     setPaying(false);
