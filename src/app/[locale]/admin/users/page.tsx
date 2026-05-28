@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Star, CalendarDays, Loader2, Mail, Phone, X, MessageCircle, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Users, Star, CalendarDays, Loader2, Mail, Phone, X, MessageCircle, CheckCircle2, XCircle, Clock, Trash2 } from "lucide-react";
 import { fmt12 } from "@/lib/fmt12";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 
@@ -38,15 +38,26 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState<UserRow | null>(null);
   const [bookingsPopup, setBookingsPopup] = useState<UserRow | null>(null);
 
-  useEffect(() => {
+  const fetchUsers = () => {
+    setLoading(true);
     fetch("/api/admin/users")
       .then((r) => r.json())
       .then((data) => { setUsers(Array.isArray(data) ? data : []); })
       .catch(() => setUsers([]))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchUsers(); }, []);
+
+  const handleDeleteUser = async (usr: UserRow) => {
+    await fetch(`/api/admin/users/${usr.id}`, { method: "DELETE" });
+    setConfirmDeleteUser(null);
+    setSelectedUser(null);
+    fetchUsers();
+  };
 
   const filtered = users.filter((usr) =>
     usr.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -216,6 +227,12 @@ export default function UsersPage() {
                 )}
               </div>
 
+              {/* Delete */}
+              <button onClick={() => { setSelectedUser(null); setConfirmDeleteUser(selectedUser); }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer">
+                <Trash2 size={13} aria-hidden="true" /> Delete Client
+              </button>
+
               {/* Bookings */}
               {selectedUser.bookings.length > 0 && (
                 <div>
@@ -301,6 +318,34 @@ export default function UsersPage() {
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete User */}
+      {confirmDeleteUser && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDeleteUser(null); }}>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                <Trash2 size={20} className="text-red-500" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-serif font-bold text-glam-text">Delete Client</p>
+                <p className="text-sm text-muted mt-0.5">Delete <strong className="text-glam-text">{confirmDeleteUser.name}</strong> and all their data? This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDeleteUser(null)}
+                className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">
+                Cancel
+              </button>
+              <button onClick={() => handleDeleteUser(confirmDeleteUser)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all cursor-pointer min-h-[48px]">
+                <Trash2 size={14} aria-hidden="true" /> Delete
+              </button>
             </div>
           </div>
         </div>
