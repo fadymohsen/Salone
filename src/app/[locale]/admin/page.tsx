@@ -186,29 +186,28 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
         )}
       </div>
 
-      {/* Booking Status + Monthly Calendar */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-border p-6">
-          <h2 className="font-serif text-sm font-bold text-glam-text mb-5">{a.bookingStatus}</h2>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(statusMap).map(([status, count]) => {
-              const meta = STATUS_META[status];
-              return (
-                <div key={status} className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border ${STATUS_COLORS[status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${meta?.dot ?? "bg-gray-300"}`} aria-hidden="true" />
-                  <span className="text-sm font-bold capitalize">{status}</span>
-                  <span className="text-sm font-black ms-1">{count}</span>
-                </div>
-              );
-            })}
-            {Object.keys(statusMap).length === 0 && <p className="text-sm text-muted">{a.noData}</p>}
-          </div>
+      {/* Booking Status — full width */}
+      <div className="bg-white rounded-2xl border border-border p-6">
+        <h2 className="font-serif text-sm font-bold text-glam-text mb-5">{a.bookingStatus}</h2>
+        <div className="flex flex-wrap gap-3">
+          {Object.entries(statusMap).map(([status, count]) => {
+            const meta = STATUS_META[status];
+            return (
+              <div key={status} className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border ${STATUS_COLORS[status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                <span className={`w-2 h-2 rounded-full shrink-0 ${meta?.dot ?? "bg-gray-300"}`} aria-hidden="true" />
+                <span className="text-sm font-bold capitalize">{status}</span>
+                <span className="text-sm font-black ms-1">{count}</span>
+              </div>
+            );
+          })}
+          {Object.keys(statusMap).length === 0 && <p className="text-sm text-muted">{a.noData}</p>}
         </div>
+      </div>
 
-        <div>
-          <h2 className="font-serif text-sm font-bold text-glam-text mb-3">{d.monthlyOverview}</h2>
-          <AdminCalendar dayCountMap={dayCountMap} today={today} />
-        </div>
+      {/* Monthly Calendar — full width */}
+      <div>
+        <h2 className="font-serif text-sm font-bold text-glam-text mb-3">{d.monthlyOverview}</h2>
+        <AdminCalendar dayCountMap={dayCountMap} today={today} />
       </div>
 
       {/* Recently Added */}
