@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle, ChevronLeft, ChevronRight, CalendarDays, Star } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle, ChevronLeft, ChevronRight, CalendarDays, Star, UserPlus, Users, Copy, CheckCircle2 } from "lucide-react";
 
 type Booking = {
   id: string;
@@ -19,6 +19,8 @@ type Booking = {
 
 type CategoryOption = { id: string; name: string };
 type ServiceOption = { id: string; name: string; price: number; categoryId: string | null };
+type UserOption = { id: string; name: string; email: string; phone: string | null };
+type CreateStep = "client" | "booking";
 
 const TIMES = ["11:00", "12:30", "14:00", "15:30", "17:00", "18:30", "20:00"];
 const STATUSES = ["booked", "confirmed", "completed", "cancelled", "missed"];
@@ -31,7 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
   missed: "bg-orange-50 text-orange-500 border-orange-100",
 };
 
-const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "", serviceType: "", bookingDate: "", bookingTime: "11:00", status: "booked", notes: "", promoCode: "" };
+const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "", serviceType: "", bookingDate: "", bookingTime: "11:00", status: "booked", paymentMethod: null, notes: "", promoCode: "" };
 
 const INPUT_CLS = "w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150";
 
@@ -56,6 +58,14 @@ export default function OrdersManager() {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [createStep, setCreateStep] = useState<CreateStep>("client");
+  const [clientMode, setClientMode] = useState<"existing" | "new" | null>(null);
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [newUser, setNewUser] = useState({ name: "", phone: "", email: "" });
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string } | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,13 +104,15 @@ export default function OrdersManager() {
     Promise.all([
       fetch("/api/admin/categories").then(r => r.json()),
       fetch("/api/admin/services").then(r => r.json()),
-    ]).then(([cData, sData]) => {
+      fetch("/api/admin/users").then(r => r.json()),
+    ]).then(([cData, sData, uData]) => {
       setCategories(Array.isArray(cData) ? cData : []);
       setServices(Array.isArray(sData) ? sData : []);
+      setUsers(Array.isArray(uData) ? uData : []);
     });
   }, []);
 
-  const openCreate = () => { setForm(EMPTY); setSelectedCategory(""); setModal("create"); };
+  const openCreate = () => { setForm(EMPTY); setSelectedCategory(""); setCreateStep("client"); setClientMode(null); setSelectedUserId(null); setNewUser({ name: "", phone: "", email: "" }); setCreatedCreds(null); setClientSearch(""); setModal("create"); };
   const openEdit = (b: Booking) => {
     setForm(b);
     const svc = services.find(s => s.name === b.serviceType);
@@ -109,13 +121,52 @@ export default function OrdersManager() {
   };
   const closeModal = () => setModal(null);
 
+  const handleCreateUser = async () => {
+    if (!newUser.name || !newUser.email) return;
+    setCreatingUser(true);
+    try {
+      const res = await fetch("/api/admin/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUser),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCreatedCreds({ email: data.user.email, password: data.password });
+        setForm({ ...form, clientName: data.user.name, clientPhone: data.user.phone ?? "", clientEmail: data.user.email });
+        setSelectedUserId(data.user.id);
+        // Refresh users
+        const uRes = await fetch("/api/admin/users");
+        setUsers(await uRes.json());
+      } else {
+        setToast(data.error ?? "Failed to create user");
+        setTimeout(() => setToast(null), 3000);
+      }
+    } catch {
+      setToast("Network error");
+      setTimeout(() => setToast(null), 3000);
+    }
+    setCreatingUser(false);
+  };
+
+  const selectExistingUser = (u: UserOption) => {
+    setSelectedUserId(u.id);
+    setForm({ ...form, clientName: u.name, clientPhone: u.phone ?? "", clientEmail: u.email });
+  };
+
+  const proceedToBooking = () => {
+    if (!selectedUserId && clientMode === "existing") return;
+    if (clientMode === "new" && !createdCreds) return;
+    setCreateStep("booking");
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
       const isEdit = modal === "edit";
       const res = await fetch(
         isEdit ? `/api/admin/bookings/${form.id}` : "/api/admin/bookings",
-        { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) }
+        { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, userId: isEdit ? undefined : selectedUserId }) }
       );
       if (res.ok) { closeModal(); fetchBookings(); }
       else {
@@ -433,35 +484,125 @@ export default function OrdersManager() {
         >
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-5 border-b border-border flex items-center justify-between">
-              <h2 className="font-serif font-bold text-glam-text">{modal === "create" ? "New Booking" : "Edit Booking"}</h2>
-              <button
-                onClick={closeModal}
-                aria-label="Close modal"
-                className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-pastel-pink transition-all duration-150 cursor-pointer"
-              >
+              <h2 className="font-serif font-bold text-glam-text">
+                {modal === "edit" ? "Edit Booking" : createStep === "client" ? "Select Client" : "New Booking"}
+              </h2>
+              <button onClick={closeModal} aria-label="Close"
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-pastel-pink transition-all duration-150 cursor-pointer">
                 <X size={16} aria-hidden="true" />
               </button>
             </div>
             <div className="px-6 py-5 space-y-4">
-              {modal === "create" && (
+
+              {/* ── CREATE STEP 1: Client Selection ── */}
+              {modal === "create" && createStep === "client" && (
                 <>
-                  {[
-                    { key: "clientName", label: "Name *", type: "text", placeholder: "Farida Amin", ac: "name" },
-                    { key: "clientPhone", label: "Phone *", type: "tel", placeholder: "010XXXXXXXX", ac: "tel" },
-                    { key: "clientEmail", label: "Email", type: "email", placeholder: "client@example.com", ac: "email" },
-                  ].map(({ key, label, type, placeholder, ac }) => (
-                    <div key={key}>
-                      <label className="block text-xs font-bold text-glam-text/70 mb-1.5">{label}</label>
-                      <input
-                        type={type}
-                        autoComplete={ac}
-                        value={(form as Record<string, string>)[key] ?? ""}
-                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                        placeholder={placeholder}
-                        className={INPUT_CLS}
-                      />
+                  {!clientMode && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <button type="button" onClick={() => setClientMode("existing")}
+                        className="flex flex-col items-center gap-2 p-5 rounded-2xl border border-border hover:border-primary/40 hover:bg-pastel-pink/30 transition-all cursor-pointer">
+                        <Users size={24} className="text-primary" />
+                        <span className="text-sm font-bold text-glam-text">Existing Client</span>
+                        <span className="text-xs text-muted">Select from database</span>
+                      </button>
+                      <button type="button" onClick={() => setClientMode("new")}
+                        className="flex flex-col items-center gap-2 p-5 rounded-2xl border border-border hover:border-primary/40 hover:bg-pastel-pink/30 transition-all cursor-pointer">
+                        <UserPlus size={24} className="text-primary" />
+                        <span className="text-sm font-bold text-glam-text">New Client</span>
+                        <span className="text-xs text-muted">Create new account</span>
+                      </button>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Existing client search */}
+                  {clientMode === "existing" && (
+                    <div className="space-y-3">
+                      <input type="text" placeholder="Search by name or email..." autoComplete="off" value={clientSearch}
+                        onChange={(e) => setClientSearch(e.target.value)}
+                        className={INPUT_CLS} />
+                      <div className="max-h-[250px] overflow-y-auto space-y-1.5">
+                        {users
+                          .filter(u => !clientSearch || u.name.toLowerCase().includes(clientSearch.toLowerCase()) || u.email.toLowerCase().includes(clientSearch.toLowerCase()))
+                          .map(u => (
+                            <button key={u.id} type="button" onClick={() => selectExistingUser(u)}
+                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-start transition-all cursor-pointer ${
+                                selectedUserId === u.id ? "border-primary ring-2 ring-primary/15 bg-primary/5" : "border-border hover:border-primary/40"
+                              }`}>
+                              <div className="w-9 h-9 rounded-full bg-pastel-pink flex items-center justify-center text-primary font-bold text-sm shrink-0">{u.name[0].toUpperCase()}</div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-glam-text truncate">{u.name}</p>
+                                <p className="text-xs text-muted truncate">{u.email}{u.phone ? ` · ${u.phone}` : ""}</p>
+                              </div>
+                              {selectedUserId === u.id && <CheckCircle2 size={16} className="text-primary shrink-0" />}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New client form */}
+                  {clientMode === "new" && !createdCreds && (
+                    <div className="space-y-3">
+                      <div><label className="block text-xs font-bold text-glam-text/70 mb-1.5">Name *</label>
+                        <input type="text" value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} placeholder="Farida Amin" className={INPUT_CLS} /></div>
+                      <div><label className="block text-xs font-bold text-glam-text/70 mb-1.5">Phone</label>
+                        <input type="tel" value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} placeholder="010XXXXXXXX" className={INPUT_CLS} /></div>
+                      <div><label className="block text-xs font-bold text-glam-text/70 mb-1.5">Email *</label>
+                        <input type="email" value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} placeholder="client@example.com" className={INPUT_CLS} /></div>
+                      <button type="button" onClick={handleCreateUser} disabled={creatingUser || !newUser.name || !newUser.email}
+                        className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all disabled:opacity-50 cursor-pointer min-h-[48px]">
+                        {creatingUser ? <Loader2 size={14} className="animate-spin" /> : <><UserPlus size={14} /> Create Account</>}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Created credentials */}
+                  {clientMode === "new" && createdCreds && (
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-5 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-green-500" />
+                        <p className="text-sm font-bold text-green-700">Account created!</p>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-green-100">
+                          <div><p className="text-xs text-muted">Email</p><p className="text-sm font-bold text-glam-text">{createdCreds.email}</p></div>
+                          <button type="button" onClick={() => navigator.clipboard.writeText(createdCreds.email)} className="text-primary hover:text-secondary cursor-pointer"><Copy size={14} /></button>
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-green-100">
+                          <div><p className="text-xs text-muted">Password</p><p className="text-sm font-bold text-glam-text font-mono">{createdCreds.password}</p></div>
+                          <button type="button" onClick={() => navigator.clipboard.writeText(createdCreds.password)} className="text-primary hover:text-secondary cursor-pointer"><Copy size={14} /></button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-green-600">Share these credentials with the client.</p>
+                    </div>
+                  )}
+
+                  {/* Proceed button */}
+                  {(clientMode === "existing" && selectedUserId) || (clientMode === "new" && createdCreds) ? (
+                    <div className="flex gap-3">
+                      <button type="button" onClick={() => { setClientMode(null); setSelectedUserId(null); setCreatedCreds(null); }}
+                        className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">Back</button>
+                      <button type="button" onClick={proceedToBooking}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all cursor-pointer min-h-[48px]">
+                        Next: Book Service →
+                      </button>
+                    </div>
+                  ) : null}
+                </>
+              )}
+
+              {/* ── CREATE STEP 2: Booking Details ── */}
+              {modal === "create" && createStep === "booking" && (
+                <>
+                  {/* Client summary */}
+                  <div className="bg-pastel-pink/40 rounded-xl px-4 py-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">{form.clientName[0]?.toUpperCase()}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-glam-text truncate">{form.clientName}</p>
+                      <p className="text-xs text-muted">{form.clientPhone}{form.clientEmail ? ` · ${form.clientEmail}` : ""}</p>
+                    </div>
+                    <button type="button" onClick={() => setCreateStep("client")} className="text-xs font-bold text-primary hover:text-secondary cursor-pointer">Change</button>
+                  </div>
 
                   {/* Category */}
                   <div>
@@ -471,12 +612,8 @@ export default function OrdersManager() {
                         <button key={c.id} type="button"
                           onClick={() => { setSelectedCategory(c.id); setForm({ ...form, serviceType: "" }); }}
                           className={`px-3 py-2.5 rounded-xl border text-sm font-semibold text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
-                            selectedCategory === c.id
-                              ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
-                              : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
-                          }`}>
-                          {c.name}
-                        </button>
+                            selectedCategory === c.id ? "bg-primary text-white border-primary shadow-md shadow-primary/25" : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                          }`}>{c.name}</button>
                       ))}
                     </div>
                   </div>
@@ -487,12 +624,9 @@ export default function OrdersManager() {
                       <label className="block text-xs font-bold text-glam-text/70 mb-2">Service *</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {services.filter(s => s.categoryId === selectedCategory).map((s) => (
-                          <button key={s.id} type="button"
-                            onClick={() => setForm({ ...form, serviceType: s.name })}
+                          <button key={s.id} type="button" onClick={() => setForm({ ...form, serviceType: s.name })}
                             className={`px-3 py-2.5 rounded-xl border text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
-                              form.serviceType === s.name
-                                ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
-                                : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                              form.serviceType === s.name ? "bg-primary text-white border-primary shadow-md shadow-primary/25" : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
                             }`}>
                             <span className="text-sm font-semibold block">{s.name}</span>
                             <span className={`text-xs mt-0.5 block ${form.serviceType === s.name ? "text-white/80" : "text-primary font-bold"}`}>{s.price} EGP</span>
@@ -504,30 +638,26 @@ export default function OrdersManager() {
                 </>
               )}
 
-              {/* Date */}
-              <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Date *</label>
-                <input
-                  type="date"
-                  value={form.bookingDate}
-                  onChange={(e) => setForm({ ...form, bookingDate: e.target.value })}
-                  className={INPUT_CLS}
-                />
-              </div>
+              {/* ── EDIT MODE or CREATE STEP 2: Date/Time/Status ── */}
+              {(modal === "edit" || (modal === "create" && createStep === "booking")) && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Date *</label>
+                    <input type="date" value={form.bookingDate} onChange={(e) => setForm({ ...form, bookingDate: e.target.value })} className={INPUT_CLS} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-glam-text/70 mb-2">Time *</label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {TIMES.map((t) => (
+                        <button key={t} type="button" onClick={() => setForm({ ...form, bookingTime: t })}
+                          className={`py-2.5 text-xs font-bold rounded-xl border transition-all duration-150 cursor-pointer min-h-[44px] ${form.bookingTime === t ? "bg-primary text-white border-primary shadow-sm shadow-primary/25" : "border-border text-glam-text hover:border-primary/50 hover:text-primary"}`}
+                        >{fmt12(t)}</button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
 
-              {/* Time */}
-              <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-2">Time *</label>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {TIMES.map((t) => (
-                    <button key={t} type="button" onClick={() => setForm({ ...form, bookingTime: t })}
-                      className={`py-2.5 text-xs font-bold rounded-xl border transition-all duration-150 cursor-pointer min-h-[44px] ${form.bookingTime === t ? "bg-primary text-white border-primary shadow-sm shadow-primary/25" : "border-border text-glam-text hover:border-primary/50 hover:text-primary"}`}
-                    >{fmt12(t)}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Status (edit only) */}
               {modal === "edit" && (
                 <div>
                   <label className="block text-xs font-bold text-glam-text/70 mb-2">Status</label>
@@ -535,34 +665,26 @@ export default function OrdersManager() {
                     {STATUSES.map((s) => (
                       <button key={s} type="button" onClick={() => setForm({ ...form, status: s })}
                         className={`py-2.5 text-xs font-bold rounded-xl border capitalize transition-all duration-150 cursor-pointer min-h-[44px] ${
-                          form.status === s
-                            ? `${STATUS_COLORS[s]} ring-2 ring-primary/15`
-                            : "border-border text-glam-text hover:border-primary/50"
-                        }`}>
-                        {s}
-                      </button>
+                          form.status === s ? `${STATUS_COLORS[s]} ring-2 ring-primary/15` : "border-border text-glam-text hover:border-primary/50"
+                        }`}>{s}</button>
                     ))}
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Footer buttons */}
+            {(modal === "edit" || (modal === "create" && createStep === "booking")) && (
             <div className="px-6 py-4 border-t border-border flex gap-3">
-              <button
-                onClick={closeModal}
-                className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all duration-150 cursor-pointer min-h-[48px]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving || (modal === "create" && (!form.clientName || !form.clientPhone || !form.serviceType || !form.bookingDate || !form.bookingTime))}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/20 cursor-pointer min-h-[48px]"
-              >
-                {saving ? (
-                  <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> Saving…</>
-                ) : modal === "create" ? "Create Booking" : "Save Changes"}
+              <button onClick={closeModal}
+                className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all duration-150 cursor-pointer min-h-[48px]">Cancel</button>
+              <button onClick={handleSave}
+                disabled={saving || (modal === "create" && (!form.serviceType || !form.bookingDate || !form.bookingTime))}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/20 cursor-pointer min-h-[48px]">
+                {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : modal === "create" ? "Create Booking" : "Save Changes"}
               </button>
             </div>
+            )}
           </div>
         </div>
       )}

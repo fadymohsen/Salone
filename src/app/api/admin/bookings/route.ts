@@ -47,14 +47,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { clientName, clientPhone, clientEmail, serviceType, bookingDate, bookingTime, notes, promoCode } = body;
+  const { clientName, clientPhone, clientEmail, serviceType, bookingDate, bookingTime, notes, promoCode, userId } = body;
 
   if (!clientName || !clientPhone || !bookingDate || !bookingTime || !serviceType)
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
 
   try {
     const booking = await prisma.booking.create({
-      data: { clientName, clientPhone, clientEmail: clientEmail || null, serviceType, bookingDate, bookingTime, notes: notes || null, promoCode: promoCode || null },
+      data: { clientName, clientPhone, clientEmail: clientEmail || null, serviceType, bookingDate, bookingTime, notes: notes || null, promoCode: promoCode || null, userId: userId || null },
     });
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {
