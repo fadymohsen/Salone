@@ -217,13 +217,15 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
           {recentBookings.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted">{d.noBookingsYet}</div>
           ) : recentBookings.map(b => (
-            <div key={b.id} className="px-4 py-3 flex items-center gap-3 hover:bg-pastel-pink/30 transition-colors duration-150">
-              <div className="w-8 h-8 rounded-full bg-pastel-pink flex items-center justify-center text-primary font-bold text-sm shrink-0">{b.clientName[0].toUpperCase()}</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-glam-text truncate">{b.clientName}</p>
-                <p className="text-xs text-muted">{b.serviceType} · {b.bookingDate}</p>
+            <div key={b.id} className="px-4 py-3 hover:bg-pastel-pink/30 transition-colors duration-150 space-y-1">
+              <p className="text-sm font-bold text-glam-text">{b.clientName}</p>
+              <p className="text-xs text-muted">{b.serviceType}</p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs text-muted flex items-center gap-1">
+                  <Clock size={10} aria-hidden="true" /> {b.bookingDate} · {fmt12(b.bookingTime)}
+                </span>
+                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border capitalize ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>{b.status}</span>
               </div>
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>{b.status}</span>
             </div>
           ))}
         </div>
