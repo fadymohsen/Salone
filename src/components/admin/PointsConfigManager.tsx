@@ -81,24 +81,41 @@ export default function PointsConfigManager() {
     <div className="space-y-6">
       {/* How it works */}
       <div className="bg-pastel-pink/40 border border-primary/10 rounded-2xl p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Info size={15} className="text-primary shrink-0" aria-hidden="true" />
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Info size={15} className="text-primary" aria-hidden="true" />
+          </div>
           <p className="text-sm font-bold text-glam-text">How the Loyalty Program Works</p>
         </div>
-        <ol className="space-y-1.5 text-sm text-muted list-none">
-          <li className="flex items-start gap-2">
-            <Zap size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-            Every <strong className="text-glam-text">1 EGP</strong> paid = <strong className="text-glam-text">1 point</strong> earned automatically
-          </li>
-          <li className="flex items-start gap-2">
-            <Gift size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-            Select specific services below as <strong className="text-glam-text">redeemable rewards</strong> with a custom discount %
-          </li>
-          <li className="flex items-start gap-2">
-            <Star size={13} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
-            Users redeem points from their account to get the discount on selected services
-          </li>
-        </ol>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 bg-white/60 rounded-xl px-3.5 py-3">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <Zap size={13} className="text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-glam-text mb-0.5">Earn Points</p>
+              <p className="text-xs text-muted leading-relaxed">Every <strong className="text-glam-text">1 EGP</strong> paid = <strong className="text-glam-text">1 point</strong> earned automatically</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 bg-white/60 rounded-xl px-3.5 py-3">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <Gift size={13} className="text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-glam-text mb-0.5">Set Rewards</p>
+              <p className="text-xs text-muted leading-relaxed">Select services below as <strong className="text-glam-text">redeemable rewards</strong> with a custom discount %</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 bg-white/60 rounded-xl px-3.5 py-3">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <Star size={13} className="text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-glam-text mb-0.5">Redeem</p>
+              <p className="text-xs text-muted leading-relaxed">Users redeem points from their account to get discounts on selected services</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Service Rewards */}
@@ -211,15 +228,15 @@ export default function PointsConfigManager() {
           <div className="space-y-2">
             <p className="text-xs font-bold text-muted uppercase tracking-wide">Available Services</p>
             {nonRewardServices.map(s => (
-              <div key={s.id} className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-3">
-                <div className="flex-1 min-w-0">
+              <div key={s.id} className="bg-background border border-border rounded-2xl px-4 py-3 space-y-2.5">
+                <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-bold text-glam-text truncate">{s.name}</p>
-                  <p className="text-xs text-muted">{s.price} EGP</p>
+                  <span className="text-sm font-bold text-primary tabular-nums shrink-0">{s.price} EGP</span>
                 </div>
                 <button
                   onClick={() => handleToggleReward(s, 50, Math.round(s.price * 50 / 100))}
                   disabled={savingId === s.id}
-                  className="flex items-center gap-1.5 text-xs font-bold text-primary bg-pastel-pink px-3 py-2 rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer shrink-0"
+                  className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-primary bg-pastel-pink px-3 py-2.5 rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
                 >
                   {savingId === s.id ? <Loader2 size={12} className="animate-spin" /> : <><Gift size={12} aria-hidden="true" /> Add to Rewards</>}
                 </button>
