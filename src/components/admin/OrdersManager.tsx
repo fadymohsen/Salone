@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 
 type Booking = {
   id: string;
@@ -34,6 +34,11 @@ const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "
 
 const INPUT_CLS = "w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150";
 
+function fmt12(t: string) {
+  const [h, m] = t.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+}
+
 export default function OrdersManager() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +48,8 @@ export default function OrdersManager() {
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const [showServiceFilter, setShowServiceFilter] = useState(false);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [calView, setCalView] = useState(() => { const now = new Date(); return { y: now.getFullYear(), m: now.getMonth() }; });
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [form, setForm] = useState<Booking>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -58,6 +65,7 @@ export default function OrdersManager() {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
         setShowServiceFilter(false);
         setShowStatusFilter(false);
+        setShowDatePicker(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -165,110 +173,162 @@ export default function OrdersManager() {
         />
       </div>
 
-      {/* Filters — separate row */}
-      <div ref={filterRef} className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-muted shrink-0">
-          <SlidersHorizontal size={14} aria-hidden="true" />
-          <span className="text-xs font-bold">Filters</span>
-        </div>
-
-        {/* Date picker */}
-        <div className="relative">
-          <input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="bg-white border border-border rounded-xl px-3 py-2.5 text-sm font-medium text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer min-w-[140px]"
-          />
-        </div>
-
-        {/* Services multi-select */}
-        <div className="relative">
-          <button type="button" onClick={() => { setShowServiceFilter(!showServiceFilter); setShowStatusFilter(false); }}
-            className={`flex items-center gap-2 bg-white border rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer min-w-[140px] ${
-              filterServices.length > 0 ? "border-primary text-primary" : "border-border text-glam-text"
-            }`}>
-            <span className="truncate">{filterServices.length > 0 ? `${filterServices.length} service${filterServices.length !== 1 ? "s" : ""}` : "All Services"}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-50"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          {showServiceFilter && (
-            <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
-              <div className="max-h-[250px] overflow-y-auto p-2 space-y-1">
-                {services.map(s => {
-                  const checked = filterServices.includes(s.name);
-                  return (
-                    <button key={s.id} type="button" onClick={() => toggleServiceFilter(s.name)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-start transition-all duration-150 cursor-pointer ${
-                        checked ? "bg-primary/5 text-primary font-bold" : "text-glam-text hover:bg-pastel-pink"
-                      }`}>
-                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "bg-primary border-primary" : "border-border"}`}>
-                        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                      </div>
-                      <span className="truncate">{s.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {filterServices.length > 0 && (
-                <div className="border-t border-border p-2">
-                  <button type="button" onClick={() => setFilterServices([])}
-                    className="w-full text-xs font-bold text-muted hover:text-primary text-center py-1.5 cursor-pointer transition-colors">
-                    Clear selection
-                  </button>
-                </div>
-              )}
-            </div>
+      {/* Filters — full width 3-column grid */}
+      <div ref={filterRef} className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-muted">
+            <SlidersHorizontal size={14} aria-hidden="true" />
+            <span className="text-xs font-bold">Filters</span>
+          </div>
+          {hasFilters && (
+            <button
+              onClick={() => { setSearch(""); setFilterDate(""); setFilterServices([]); setFilterStatuses([]); }}
+              className="flex items-center gap-1 text-xs text-muted hover:text-primary font-bold px-2 py-1 transition-colors cursor-pointer"
+            >
+              <X size={11} aria-hidden="true" /> Clear All
+            </button>
           )}
         </div>
 
-        {/* Status multi-select */}
-        <div className="relative">
-          <button type="button" onClick={() => { setShowStatusFilter(!showStatusFilter); setShowServiceFilter(false); }}
-            className={`flex items-center gap-2 bg-white border rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer min-w-[120px] ${
-              filterStatuses.length > 0 ? "border-primary text-primary" : "border-border text-glam-text"
-            }`}>
-            <span className="truncate">{filterStatuses.length > 0 ? `${filterStatuses.length} status${filterStatuses.length !== 1 ? "es" : ""}` : "All Status"}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-50"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          {showStatusFilter && (
-            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
-              <div className="p-2 space-y-1">
-                {STATUSES.map(s => {
-                  const checked = filterStatuses.includes(s);
-                  return (
-                    <button key={s} type="button" onClick={() => toggleStatusFilter(s)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-start transition-all duration-150 cursor-pointer capitalize ${
-                        checked ? "bg-primary/5 text-primary font-bold" : "text-glam-text hover:bg-pastel-pink"
-                      }`}>
-                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "bg-primary border-primary" : "border-border"}`}>
-                        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                      </div>
-                      <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${STATUS_COLORS[s]?.split(" ")[0] ?? "bg-gray-200"}`} />
-                      <span>{s}</span>
+        <div className="grid grid-cols-3 gap-2">
+          {/* Date picker */}
+          <div className="relative">
+            <button type="button" onClick={() => { setShowDatePicker(!showDatePicker); setShowServiceFilter(false); setShowStatusFilter(false); }}
+              className={`w-full flex items-center gap-2 bg-white border rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                filterDate ? "border-primary text-primary" : "border-border text-glam-text"
+              }`}>
+              <CalendarDays size={14} className="shrink-0 opacity-60" aria-hidden="true" />
+              <span className="truncate">{filterDate || "All Dates"}</span>
+            </button>
+            {showDatePicker && (() => {
+              const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+              const DAY_NAMES = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+              const firstDow = new Date(calView.y, calView.m, 1).getDay();
+              const daysInMonth = new Date(calView.y, calView.m + 1, 0).getDate();
+              const toStr = (d: number) => `${calView.y}-${String(calView.m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+              return (
+                <div className="absolute top-full left-0 mt-1 w-72 bg-white border border-border rounded-2xl shadow-xl z-20 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <button type="button" onClick={() => setCalView(v => v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 })}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-pastel-pink hover:text-primary transition-all cursor-pointer">
+                      <ChevronLeft size={14} />
                     </button>
-                  );
-                })}
-              </div>
-              {filterStatuses.length > 0 && (
-                <div className="border-t border-border p-2">
-                  <button type="button" onClick={() => setFilterStatuses([])}
-                    className="w-full text-xs font-bold text-muted hover:text-primary text-center py-1.5 cursor-pointer transition-colors">
-                    Clear selection
-                  </button>
+                    <span className="text-sm font-bold text-glam-text">{MONTHS[calView.m]} {calView.y}</span>
+                    <button type="button" onClick={() => setCalView(v => v.m === 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m: v.m + 1 })}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-pastel-pink hover:text-primary transition-all cursor-pointer">
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-7 mb-1">
+                    {DAY_NAMES.map(d => <span key={d} className="text-center text-xs font-bold text-muted/50 py-1">{d}</span>)}
+                  </div>
+                  <div className="grid grid-cols-7 gap-y-0.5">
+                    {Array.from({ length: firstDow }, (_, i) => <span key={`b${i}`} />)}
+                    {Array.from({ length: daysInMonth }, (_, i) => {
+                      const day = i + 1, dateStr = toStr(day);
+                      const isSelected = filterDate === dateStr;
+                      const isToday = dateStr === new Date().toISOString().split("T")[0];
+                      return (
+                        <button key={day} type="button"
+                          onClick={() => { setFilterDate(isSelected ? "" : dateStr); setShowDatePicker(false); }}
+                          className={`h-8 w-full rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                            isSelected ? "bg-primary text-white" : isToday ? "ring-2 ring-primary/40 text-primary font-bold" : "text-glam-text hover:bg-pastel-pink hover:text-primary"
+                          }`}>
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {filterDate && (
+                    <button type="button" onClick={() => { setFilterDate(""); setShowDatePicker(false); }}
+                      className="w-full text-xs font-bold text-muted hover:text-primary text-center py-2 mt-2 border-t border-border cursor-pointer transition-colors">
+                      Clear date
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              );
+            })()}
+          </div>
 
-        {hasFilters && (
-          <button
-            onClick={() => { setSearch(""); setFilterDate(""); setFilterServices([]); setFilterStatuses([]); }}
-            className="flex items-center gap-1 text-xs text-muted hover:text-primary font-bold px-3 py-2.5 rounded-xl border border-border hover:border-primary/40 transition-all duration-150 cursor-pointer"
-          >
-            <X size={12} aria-hidden="true" /> Clear All
-          </button>
-        )}
+          {/* Services multi-select */}
+          <div className="relative">
+            <button type="button" onClick={() => { setShowServiceFilter(!showServiceFilter); setShowStatusFilter(false); setShowDatePicker(false); }}
+              className={`w-full flex items-center gap-2 bg-white border rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                filterServices.length > 0 ? "border-primary text-primary" : "border-border text-glam-text"
+              }`}>
+              <span className="truncate flex-1 text-start">{filterServices.length > 0 ? `${filterServices.length} service${filterServices.length !== 1 ? "s" : ""}` : "All Services"}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-50"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            {showServiceFilter && (
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
+                <div className="max-h-[250px] overflow-y-auto p-2 space-y-1">
+                  {services.map(s => {
+                    const checked = filterServices.includes(s.name);
+                    return (
+                      <button key={s.id} type="button" onClick={() => toggleServiceFilter(s.name)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-start transition-all duration-150 cursor-pointer ${
+                          checked ? "bg-primary/5 text-primary font-bold" : "text-glam-text hover:bg-pastel-pink"
+                        }`}>
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "bg-primary border-primary" : "border-border"}`}>
+                          {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        </div>
+                        <span className="truncate">{s.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {filterServices.length > 0 && (
+                  <div className="border-t border-border p-2">
+                    <button type="button" onClick={() => setFilterServices([])}
+                      className="w-full text-xs font-bold text-muted hover:text-primary text-center py-1.5 cursor-pointer transition-colors">
+                      Clear selection
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Status multi-select */}
+          <div className="relative">
+            <button type="button" onClick={() => { setShowStatusFilter(!showStatusFilter); setShowServiceFilter(false); setShowDatePicker(false); }}
+              className={`w-full flex items-center gap-2 bg-white border rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                filterStatuses.length > 0 ? "border-primary text-primary" : "border-border text-glam-text"
+              }`}>
+              <span className="truncate flex-1 text-start">{filterStatuses.length > 0 ? `${filterStatuses.length} status${filterStatuses.length !== 1 ? "es" : ""}` : "All Status"}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-50"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            {showStatusFilter && (
+              <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
+                <div className="p-2 space-y-1">
+                  {STATUSES.map(s => {
+                    const checked = filterStatuses.includes(s);
+                    return (
+                      <button key={s} type="button" onClick={() => toggleStatusFilter(s)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-start transition-all duration-150 cursor-pointer capitalize ${
+                          checked ? "bg-primary/5 text-primary font-bold" : "text-glam-text hover:bg-pastel-pink"
+                        }`}>
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "bg-primary border-primary" : "border-border"}`}>
+                          {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        </div>
+                        <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${STATUS_COLORS[s]?.split(" ")[0] ?? "bg-gray-200"}`} />
+                        <span>{s}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {filterStatuses.length > 0 && (
+                  <div className="border-t border-border p-2">
+                    <button type="button" onClick={() => setFilterStatuses([])}
+                      className="w-full text-xs font-bold text-muted hover:text-primary text-center py-1.5 cursor-pointer transition-colors">
+                      Clear selection
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Results count */}
@@ -297,7 +357,7 @@ export default function OrdersManager() {
             <div key={b.id} className="border-t border-border first:border-t-0 hover:bg-pastel-pink/20 transition-colors duration-100">
               {/* Desktop row */}
               <div className="hidden md:grid grid-cols-[80px_1fr_1fr_100px_110px_96px] gap-3 px-4 py-3 items-center">
-                <span className="font-bold text-sm text-glam-text">{b.bookingTime}</span>
+                <span className="font-bold text-sm text-glam-text">{fmt12(b.bookingTime)}</span>
                 <div>
                   <p className="font-bold text-sm text-glam-text">{b.clientName}</p>
                   <p className="text-xs text-muted">{b.clientPhone}{b.clientEmail ? ` · ${b.clientEmail}` : ""}</p>
@@ -329,7 +389,7 @@ export default function OrdersManager() {
               <div className="md:hidden px-4 py-3 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="bg-pastel-pink text-primary font-bold text-xs px-2.5 py-1 rounded-lg">{b.bookingTime}</span>
+                    <span className="bg-pastel-pink text-primary font-bold text-xs px-2.5 py-1 rounded-lg">{fmt12(b.bookingTime)}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>{b.status}</span>
                   </div>
                   <div className="flex gap-1.5">
