@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { createHash, randomBytes } from "node:crypto";
+import { hashPassword } from "@/lib/user-auth";
+import { randomBytes } from "node:crypto";
 
 export async function POST(request: Request) {
   if (!(await isAdminAuthenticated()))
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "A user with this email already exists" }, { status: 409 });
 
   const password = randomBytes(4).toString("hex"); // 8 char random password
-  const passwordHash = createHash("sha256").update(password).digest("hex");
+  const passwordHash = hashPassword(password);
 
   const user = await prisma.user.create({
     data: { name, email, phone: phone || null, passwordHash },
