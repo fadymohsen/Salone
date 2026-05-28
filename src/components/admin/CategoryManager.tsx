@@ -131,7 +131,6 @@ export default function CategoryManager() {
               <div className="md:hidden px-4 py-3 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm text-glam-text">{c.name}</p>
-                  {c.nameAr && <p className="text-xs text-muted" dir="rtl">{c.nameAr}</p>}
                 </div>
                 <button onClick={() => toggleActive(c)}
                   className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-full border cursor-pointer transition-all duration-150 ${
