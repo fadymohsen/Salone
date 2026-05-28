@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle, ChevronLeft, ChevronRight, CalendarDays, Star } from "lucide-react";
 
 type Booking = {
   id: string;
@@ -12,6 +12,7 @@ type Booking = {
   bookingDate: string;
   bookingTime: string;
   status: string;
+  paymentMethod: string | null;
   notes: string | null;
   promoCode: string | null;
 };
@@ -361,7 +362,14 @@ export default function OrdersManager() {
                   <p className="text-xs text-muted">{b.clientPhone}</p>
                   {b.clientEmail && <p className="text-xs text-muted">{b.clientEmail}</p>}
                 </div>
-                <span className="text-sm text-glam-text/70 truncate">{b.serviceType}</span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-sm text-glam-text/70 truncate">{b.serviceType}</span>
+                  {b.paymentMethod === "points" && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap shrink-0">
+                      <Star size={8} aria-hidden="true" /> Loyalty
+                    </span>
+                  )}
+                </div>
                 <span className="text-sm text-muted">{b.bookingDate}</span>
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize w-fit ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
                   {b.status}
@@ -403,7 +411,14 @@ export default function OrdersManager() {
                 <p className="font-bold text-sm text-glam-text">{b.clientName}</p>
                 <p className="text-xs text-muted">{b.clientPhone}</p>
                 {b.clientEmail && <p className="text-xs text-muted">{b.clientEmail}</p>}
-                <p className="text-xs text-muted">{b.serviceType} · {b.bookingDate}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs text-muted">{b.serviceType} · {b.bookingDate}</p>
+                  {b.paymentMethod === "points" && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded-full leading-none whitespace-nowrap shrink-0">
+                      <Star size={7} aria-hidden="true" /> Loyalty
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))}
