@@ -33,8 +33,8 @@ export async function POST(
     }),
   ];
 
-  // Award loyalty points: 1 EGP paid = 1 point
-  if (pointsToAward > 0) {
+  // Award loyalty points: 1 EGP paid = 1 point (cash on arrival excluded)
+  if (pointsToAward > 0 && paymentMethod !== "cash") {
     txns.push(
       prisma.user.update({ where: { id: userId }, data: { points: { increment: pointsToAward } } }) as never,
       prisma.pointsTransaction.create({

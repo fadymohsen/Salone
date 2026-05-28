@@ -490,6 +490,16 @@ export default function DashboardPage() {
                           </button>
                         ))}
                       </div>
+                      {payMethod === "cash" && b.amount != null && b.amount > 0 && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 flex items-start gap-2">
+                          <Star size={13} className="text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
+                          <p className="text-xs text-red-500 font-medium">
+                            {locale === "ar"
+                              ? `ستفقدين ${b.amount} نقطة! ادفعي أونلاين لكسب النقاط.`
+                              : `You'll miss ${b.amount} loyalty points! Pay online to earn points.`}
+                          </p>
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <button onClick={() => { setPayingId(null); setPayMethod(null); }}
                           className="flex-1 py-2.5 rounded-xl border border-border text-xs font-bold text-muted hover:border-primary hover:text-primary transition-all duration-150 cursor-pointer">

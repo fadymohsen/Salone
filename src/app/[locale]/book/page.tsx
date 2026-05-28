@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, User, Phone, Mail, ChevronLeft, ChevronRight,
-  Clock, Loader2, CheckCircle2, CreditCard, Smartphone, Banknote, Tag, Wallet,
+  Clock, Loader2, CheckCircle2, CreditCard, Smartphone, Banknote, Tag, Wallet, Star,
 } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
@@ -334,12 +334,18 @@ function BookingFormContent() {
             </div>
           )}
           {payMethod === "cash" && (
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 space-y-2">
-              <p className="text-sm font-bold text-amber-700">{locale === "ar" ? "الدفع عند الوصول" : "Cash on Arrival"}</p>
-              <p className="text-sm text-amber-600">{locale === "ar" ? "يرجى إحضار المبلغ المطلوب نقداً عند وصولك للصالون. سيتم تأكيد حجزك تلقائياً." : "Please bring the required amount in cash when you arrive at the salon. Your booking will be confirmed automatically."}</p>
-              <div className="flex items-center gap-2 text-xs text-amber-500">
-                <CheckCircle2 size={13} className="text-amber-500" aria-hidden="true" />
-                {locale === "ar" ? "لا حاجة للدفع المسبق" : "No prepayment needed"}
+            <div className="space-y-2">
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 space-y-2">
+                <p className="text-sm font-bold text-amber-700">{locale === "ar" ? "الدفع عند الوصول" : "Cash on Arrival"}</p>
+                <p className="text-sm text-amber-600">{locale === "ar" ? "يرجى إحضار المبلغ المطلوب نقداً عند وصولك للصالون. سيتم تأكيد حجزك تلقائياً." : "Please bring the required amount in cash when you arrive at the salon. Your booking will be confirmed automatically."}</p>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-2">
+                <Star size={14} className="text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
+                <p className="text-xs text-red-500 font-medium">
+                  {locale === "ar"
+                    ? `ستفقدين ${finalPrice} نقطة! ادفعي أونلاين لكسب النقاط في برنامج الولاء.`
+                    : `You'll miss out on ${finalPrice} loyalty points! Pay online to earn points.`}
+                </p>
               </div>
             </div>
           )}

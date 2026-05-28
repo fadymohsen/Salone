@@ -9,6 +9,9 @@ async function awardPointsIfCompleted(bookingId: string, previousStatus: string,
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   if (!booking?.userId) return;
 
+  // Cash on arrival payments don't earn loyalty points
+  if (booking.paymentMethod === "cash") return;
+
   // 1 EGP = 1 point — award points based on the actual amount paid
   // If amount is null (not recorded), look up the service price as fallback
   // If amount is 0 (free via loyalty/promo), award 0 points
