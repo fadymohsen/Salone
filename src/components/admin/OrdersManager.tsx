@@ -34,10 +34,7 @@ const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "
 
 const INPUT_CLS = "w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150";
 
-function fmt12(t: string) {
-  const [h, m] = t.split(":").map(Number);
-  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
-}
+import { fmt12 } from "@/lib/fmt12";
 
 export default function OrdersManager() {
   const [bookings, setBookings] = useState<Booking[]>([]);

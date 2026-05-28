@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
+import { fmt12 } from "@/lib/fmt12";
 
 type User = { id: string; name: string; email: string; phone: string | null; points: number };
 type Booking = {
@@ -363,7 +364,7 @@ export default function DashboardPage() {
                   {redeemAvailableTimes.map(time => (
                     <button key={time} type="button" onClick={() => setRedeemTime(time)}
                       className={`py-2 text-xs font-bold rounded-xl border transition-all duration-150 cursor-pointer min-h-[40px] ${redeemTime === time ? "bg-primary text-white border-primary" : "border-border text-glam-text hover:border-primary/50 hover:text-primary"}`}>
-                      {time}
+                      {fmt12(time)}
                     </button>
                   ))}
                 </div>
@@ -432,7 +433,7 @@ export default function DashboardPage() {
                       <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="flex items-center gap-1 text-xs text-muted"><CalendarDays size={11} aria-hidden="true" /> {b.bookingDate}</span>
-                        <span className="flex items-center gap-1 text-xs text-muted"><Clock size={11} aria-hidden="true" /> {b.bookingTime}</span>
+                        <span className="flex items-center gap-1 text-xs text-muted"><Clock size={11} aria-hidden="true" /> {fmt12(b.bookingTime)}</span>
                       </div>
                     </div>
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize shrink-0 ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
@@ -517,7 +518,7 @@ export default function DashboardPage() {
                         {TIMES.map(time => (
                           <button key={time} type="button" onClick={() => setNewTime(time)}
                             className={`py-2 text-xs font-bold rounded-xl border transition-all duration-150 cursor-pointer min-h-[40px] ${newTime === time ? "bg-primary text-white border-primary" : "border-border text-glam-text hover:border-primary/50 hover:text-primary"}`}>
-                            {time}
+                            {fmt12(time)}
                           </button>
                         ))}
                       </div>
@@ -574,7 +575,7 @@ export default function DashboardPage() {
                     {/* Service name */}
                     <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
                     {/* Line 2: Date & time */}
-                    <p className="text-xs text-muted mt-0.5">{b.bookingDate} · {b.bookingTime}</p>
+                    <p className="text-xs text-muted mt-0.5">{b.bookingDate} · {fmt12(b.bookingTime)}</p>
                     {/* Line 3: Points + status */}
                     <div className="flex items-center gap-2 mt-1.5">
                       {b.pointsEarned && b.pointsEarned > 0 && (

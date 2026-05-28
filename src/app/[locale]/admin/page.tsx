@@ -3,6 +3,7 @@ import Link from "next/link";
 import AdminCalendar from "@/components/admin/AdminCalendar";
 import SendScheduleBtn from "@/components/admin/SendScheduleBtn";
 import { CalendarCheck, CalendarClock, TrendingUp, Users, ArrowRight, Clock, CheckCircle2, XCircle, AlertCircle, CalendarDays } from "lucide-react";
+import { fmt12 } from "@/lib/fmt12";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -134,7 +135,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
               {todayBookings.map(b => (
                 <div key={b.id} className="bg-white rounded-2xl border border-border p-4 flex items-center gap-4 hover:border-primary/30 transition-colors duration-150">
                   <span className="bg-pastel-pink text-primary font-bold text-sm rounded-xl px-3 py-1.5 shrink-0 flex items-center gap-1.5">
-                    <Clock size={12} aria-hidden="true" /> {b.bookingTime}
+                    <Clock size={12} aria-hidden="true" /> {fmt12(b.bookingTime)}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-glam-text text-sm truncate">{b.clientName}</p>

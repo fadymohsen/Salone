@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
+import { fmt12 } from "@/lib/fmt12";
 
 const INPUT_CLASS =
   "w-full bg-background border border-border rounded-2xl px-4 py-3.5 text-sm text-glam-text placeholder:text-muted/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all duration-150 min-h-[48px]";
@@ -273,7 +274,7 @@ function BookingFormContent() {
           <div className="bg-white rounded-2xl border border-border p-4 shadow-sm">
             <p className="text-xs font-bold text-muted uppercase tracking-wide mb-1">{t.booking.yourBooking}</p>
             <p className="font-bold text-glam-text">{selectedService ? displayName(selectedService) : form.serviceType}</p>
-            <p className="text-sm text-muted">{form.bookingDate} · {form.bookingTime} · {form.clientName}</p>
+            <p className="text-sm text-muted">{form.bookingDate} · {fmt12(form.bookingTime)} · {form.clientName}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className="text-sm font-bold text-primary">{finalPrice} {t.common.egp}</span>
               {promoDiscount && price !== finalPrice && (
@@ -354,7 +355,7 @@ function BookingFormContent() {
           {selectedService && (
             <div className="bg-white rounded-2xl border border-border p-4 mb-4 shadow-sm">
               <p className="font-bold text-glam-text">{selectedService ? displayName(selectedService) : form.serviceType}</p>
-              <p className="text-sm text-muted mt-1">{form.bookingDate} · {form.bookingTime}</p>
+              <p className="text-sm text-muted mt-1">{form.bookingDate} · {fmt12(form.bookingTime)}</p>
               <p className="text-sm text-muted">{form.clientName}</p>
             </div>
           )}
@@ -534,7 +535,7 @@ function BookingFormContent() {
                       className={`py-3 text-xs font-semibold rounded-xl border text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
                         isSelected ? "bg-primary text-white border-primary shadow-md shadow-primary/25" : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
                       }`}>
-                      {time}
+                      {fmt12(time)}
                     </button>
                   );
                 })}
@@ -546,7 +547,7 @@ function BookingFormContent() {
               <div className="bg-pastel-pink/40 rounded-2xl p-4 border border-primary/10">
                 <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">{t.booking.yourBooking}</p>
                 <p className="font-bold text-sm text-glam-text">{displayName(selectedService)}</p>
-                <p className="text-xs text-muted mt-0.5">{form.bookingDate} · {form.bookingTime}</p>
+                <p className="text-xs text-muted mt-0.5">{form.bookingDate} · {fmt12(form.bookingTime)}</p>
                 <div className="flex items-center gap-2 mt-2">
                   {promoDiscount ? (
                     <>

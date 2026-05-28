@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Users, Star, CalendarDays, Loader2, Mail, Phone, X, MessageCircle, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { fmt12 } from "@/lib/fmt12";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 
 type Booking = {
@@ -232,7 +233,7 @@ export default function UsersPage() {
                               </span>
                             )}
                             <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
-                            <p className="text-xs text-muted">{b.bookingDate} · {b.bookingTime}</p>
+                            <p className="text-xs text-muted">{b.bookingDate} · {fmt12(b.bookingTime)}</p>
                           </div>
                           <div className="text-end shrink-0">
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
@@ -287,7 +288,7 @@ export default function UsersPage() {
                             </span>
                           )}
                           <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
-                          <p className="text-xs text-muted">{b.bookingDate} · {b.bookingTime}</p>
+                          <p className="text-xs text-muted">{b.bookingDate} · {fmt12(b.bookingTime)}</p>
                         </div>
                         <div className="text-end shrink-0">
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
