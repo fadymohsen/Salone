@@ -357,7 +357,8 @@ export default function OrdersManager() {
                 <span className="font-bold text-sm text-glam-text">{fmt12(b.bookingTime)}</span>
                 <div>
                   <p className="font-bold text-sm text-glam-text">{b.clientName}</p>
-                  <p className="text-xs text-muted">{b.clientPhone}{b.clientEmail ? ` · ${b.clientEmail}` : ""}</p>
+                  <p className="text-xs text-muted">{b.clientPhone}</p>
+                  {b.clientEmail && <p className="text-xs text-muted">{b.clientEmail}</p>}
                 </div>
                 <span className="text-sm text-glam-text/70 truncate">{b.serviceType}</span>
                 <span className="text-sm text-muted">{b.bookingDate}</span>
@@ -398,8 +399,10 @@ export default function OrdersManager() {
                     </button>
                   </div>
                 </div>
-                <p className="font-bold text-sm text-glam-text">{b.clientName} · {b.bookingDate}</p>
-                <p className="text-xs text-muted">{b.serviceType} · {b.clientPhone}</p>
+                <p className="font-bold text-sm text-glam-text">{b.clientName}</p>
+                <p className="text-xs text-muted">{b.clientPhone}</p>
+                {b.clientEmail && <p className="text-xs text-muted">{b.clientEmail}</p>}
+                <p className="text-xs text-muted">{b.serviceType} · {b.bookingDate}</p>
               </div>
             </div>
           ))}
