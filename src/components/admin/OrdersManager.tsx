@@ -164,6 +164,7 @@ export default function OrdersManager() {
         <input
           type="text"
           placeholder="Search name, phone, email…"
+          autoComplete="off"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full bg-white border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150"
@@ -430,14 +431,15 @@ export default function OrdersManager() {
               {modal === "create" && (
                 <>
                   {[
-                    { key: "clientName", label: "Name *", type: "text", placeholder: "Farida Amin" },
-                    { key: "clientPhone", label: "Phone *", type: "tel", placeholder: "010XXXXXXXX" },
-                    { key: "clientEmail", label: "Email", type: "email", placeholder: "client@example.com" },
-                  ].map(({ key, label, type, placeholder }) => (
+                    { key: "clientName", label: "Name *", type: "text", placeholder: "Farida Amin", ac: "name" },
+                    { key: "clientPhone", label: "Phone *", type: "tel", placeholder: "010XXXXXXXX", ac: "tel" },
+                    { key: "clientEmail", label: "Email", type: "email", placeholder: "client@example.com", ac: "email" },
+                  ].map(({ key, label, type, placeholder, ac }) => (
                     <div key={key}>
                       <label className="block text-xs font-bold text-glam-text/70 mb-1.5">{label}</label>
                       <input
                         type={type}
+                        autoComplete={ac}
                         value={(form as Record<string, string>)[key] ?? ""}
                         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                         placeholder={placeholder}
