@@ -32,6 +32,12 @@ export async function DELETE(
 
   const { id } = await params;
   try {
+    // Delete only "booked" (unpaid) orders, keep completed/confirmed/cancelled/missed
+    await prisma.booking.deleteMany({ where: { userId: id, status: "booked" } });
+
+    // Unlink remaining bookings from the user (so they're preserved)
+    await prisma.booking.updateMany({ where: { userId: id }, data: { userId: null } });
+
     await prisma.user.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch {
