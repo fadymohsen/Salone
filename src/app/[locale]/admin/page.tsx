@@ -231,7 +231,6 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
         </div>
       </div>
 
-      <SendScheduleBtn tomorrowDate={tomorrow} />
     </div>
   );
 }
