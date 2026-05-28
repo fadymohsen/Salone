@@ -136,17 +136,17 @@ export default function AdminCalendar({ dayCountMap, today }: Props) {
           ) : (
             <div className="space-y-2">
               {dayBookings.map(b => (
-                <div key={b.id} className="flex items-center gap-3 bg-background rounded-xl px-3 py-2.5">
-                  <span className="flex items-center gap-1 text-xs font-bold text-primary bg-pastel-pink px-2.5 py-1 rounded-lg shrink-0">
-                    <Clock size={10} aria-hidden="true" /> {fmt12(b.bookingTime)}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-glam-text truncate">{b.clientName}</p>
-                    <p className="text-xs text-muted truncate">{b.serviceType}</p>
+                <div key={b.id} className="bg-background rounded-xl px-4 py-3 border border-border">
+                  <p className="text-sm font-bold text-glam-text">{b.clientName}</p>
+                  <p className="text-xs text-muted mt-0.5">{b.serviceType}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="flex items-center gap-1 text-xs font-bold text-primary bg-pastel-pink px-2.5 py-1 rounded-lg">
+                      <Clock size={10} aria-hidden="true" /> {fmt12(b.bookingTime)}
+                    </span>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                      {b.status}
+                    </span>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full border capitalize shrink-0 ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
-                    {b.status}
-                  </span>
                 </div>
               ))}
             </div>
