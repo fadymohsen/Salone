@@ -538,8 +538,8 @@ export default function OrdersManager() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-50 shadow-sm shadow-primary/20 cursor-pointer min-h-[48px]"
+                disabled={saving || (modal === "create" && (!form.clientName || !form.clientPhone || !form.serviceType || !form.bookingDate || !form.bookingTime))}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-primary/20 cursor-pointer min-h-[48px]"
               >
                 {saving ? (
                   <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> Saving…</>
