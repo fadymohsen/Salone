@@ -17,6 +17,7 @@ export async function GET() {
         points: true,
         createdAt: true,
         _count: { select: { bookings: true } },
+        pointsTxns: { select: { points: true } },
         bookings: {
           orderBy: { createdAt: "desc" },
           select: {

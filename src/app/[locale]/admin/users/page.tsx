@@ -13,6 +13,7 @@ type Booking = {
 type UserRow = {
   id: string; name: string; email: string; phone: string | null;
   points: number; createdAt: string; _count: { bookings: number }; bookings: Booking[];
+  pointsTxns: { points: number }[];
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -196,16 +197,38 @@ export default function UsersPage() {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gradient-to-br from-primary/8 to-primary/3 rounded-2xl px-4 py-3 text-center">
-                  <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">Points</p>
-                  <p className="font-serif text-2xl font-bold text-glam-text">{selectedUser.points}</p>
+              {(() => {
+                let earned = 0, redeemed = 0;
+                for (const tx of selectedUser.pointsTxns) {
+                  if (tx.points > 0) earned += tx.points;
+                  else redeemed += Math.abs(tx.points);
+                }
+                return (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-gradient-to-br from-primary/8 to-primary/3 rounded-2xl px-3 py-3 text-center flex flex-col justify-between">
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-wide">Earned</p>
+                      <p className="font-serif text-xl font-bold text-glam-text mt-auto">{earned}</p>
+                      <p className="text-[10px] text-muted">pts</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-secondary/8 to-secondary/3 rounded-2xl px-3 py-3 text-center flex flex-col justify-between">
+                      <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Redeemed</p>
+                      <p className="font-serif text-xl font-bold text-glam-text mt-auto">{redeemed}</p>
+                      <p className="text-[10px] text-muted">pts</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-500/8 to-green-500/3 rounded-2xl px-3 py-3 text-center flex flex-col justify-between">
+                      <p className="text-[10px] font-bold text-green-600 uppercase tracking-wide">Remaining</p>
+                      <p className="font-serif text-xl font-bold text-glam-text mt-auto">{selectedUser.points}</p>
+                      <p className="text-[10px] text-muted">pts</p>
+                    </div>
+                  </div>
+                  <div className="bg-background rounded-xl px-4 py-2.5 flex items-center justify-between border border-border">
+                    <span className="text-xs font-bold text-glam-text">Bookings</span>
+                    <span className="text-sm font-bold text-primary">{selectedUser._count.bookings}</span>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-br from-secondary/8 to-secondary/3 rounded-2xl px-4 py-3 text-center">
-                  <p className="text-xs font-bold text-secondary uppercase tracking-wide mb-1">Bookings</p>
-                  <p className="font-serif text-2xl font-bold text-glam-text">{selectedUser._count.bookings}</p>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Quick Actions */}
               <div className="flex gap-2">
