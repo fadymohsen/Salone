@@ -228,18 +228,33 @@ export default function PointsConfigManager() {
           <div className="space-y-2">
             <p className="text-xs font-bold text-muted uppercase tracking-wide">Available Services</p>
             {nonRewardServices.map(s => (
-              <div key={s.id} className="bg-background border border-border rounded-2xl px-4 py-3 space-y-2.5">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold text-glam-text truncate">{s.name}</p>
+              <div key={s.id} className="bg-background border border-border rounded-2xl px-4 py-3">
+                {/* Desktop: single line */}
+                <div className="hidden md:flex items-center gap-3">
+                  <p className="text-sm font-bold text-glam-text truncate flex-1">{s.name}</p>
                   <span className="text-sm font-bold text-primary tabular-nums shrink-0">{s.price} EGP</span>
+                  <button
+                    onClick={() => handleToggleReward(s, 50, Math.round(s.price * 50 / 100))}
+                    disabled={savingId === s.id}
+                    className="flex items-center gap-1.5 text-xs font-bold text-primary bg-pastel-pink px-3 py-2 rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer shrink-0"
+                  >
+                    {savingId === s.id ? <Loader2 size={12} className="animate-spin" /> : <><Gift size={12} aria-hidden="true" /> Add to Rewards</>}
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleToggleReward(s, 50, Math.round(s.price * 50 / 100))}
-                  disabled={savingId === s.id}
-                  className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-primary bg-pastel-pink px-3 py-2.5 rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
-                >
-                  {savingId === s.id ? <Loader2 size={12} className="animate-spin" /> : <><Gift size={12} aria-hidden="true" /> Add to Rewards</>}
-                </button>
+                {/* Mobile: stacked */}
+                <div className="md:hidden space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-bold text-glam-text truncate">{s.name}</p>
+                    <span className="text-sm font-bold text-primary tabular-nums shrink-0">{s.price} EGP</span>
+                  </div>
+                  <button
+                    onClick={() => handleToggleReward(s, 50, Math.round(s.price * 50 / 100))}
+                    disabled={savingId === s.id}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-primary bg-pastel-pink px-3 py-2.5 rounded-xl hover:bg-primary hover:text-white transition-all duration-150 cursor-pointer"
+                  >
+                    {savingId === s.id ? <Loader2 size={12} className="animate-spin" /> : <><Gift size={12} aria-hidden="true" /> Add to Rewards</>}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
