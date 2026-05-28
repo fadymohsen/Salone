@@ -35,11 +35,16 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
   let dbCategories: Awaited<ReturnType<typeof prisma.category.findMany>> = [];
   let pointsConfig: { pointsPerBooking: number; pointsThreshold: number; couponDiscount: number } | null = null;
 
+  let dbTestimonials: Awaited<ReturnType<typeof prisma.testimonial.findMany>> = [];
+  let dbFaqs: Awaited<ReturnType<typeof prisma.faq.findMany>> = [];
+
   try {
-    [dbServices, dbCategories, pointsConfig] = await Promise.all([
+    [dbServices, dbCategories, pointsConfig, dbTestimonials, dbFaqs] = await Promise.all([
       prisma.service.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, include: { category: true } }),
       prisma.category.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
       prisma.pointsConfig.findFirst(),
+      prisma.testimonial.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
+      prisma.faq.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
     ]);
   } catch {
     // DB not reachable
@@ -270,27 +275,32 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {t.testimonials.items.map((item: { quote: string; name: string; service: string }, i: number) => (
-              <div key={item.name} className="bg-white rounded-3xl p-7 border border-border flex flex-col shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
-                <div className="flex gap-0.5 mb-5" aria-label="5 star rating">
-                  {Array.from({ length: 5 }, (_, j) => (
-                    <svg key={j} width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" aria-hidden="true">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-sm text-muted leading-relaxed flex-1 mb-6 italic">&ldquo;{item.quote}&rdquo;</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-border">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-primary font-bold text-sm shrink-0 border-2 border-white shadow-sm" style={{ backgroundColor: AVATARS[i] }} aria-hidden="true">
-                    {item.name[0]}
+            {(dbTestimonials.length > 0 ? dbTestimonials : t.testimonials.items).map((item: { quote?: string; quoteAr?: string | null; name?: string; nameAr?: string | null; service?: string | null; serviceAr?: string | null }, i: number) => {
+              const name = locale === "ar" ? ((item as Record<string, string>).nameAr || item.name) : item.name;
+              const quote = locale === "ar" ? ((item as Record<string, string>).quoteAr || item.quote) : item.quote;
+              const svc = locale === "ar" ? ((item as Record<string, string>).serviceAr || item.service) : item.service;
+              return (
+                <div key={i} className="bg-white rounded-3xl p-7 border border-border flex flex-col shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+                  <div className="flex gap-0.5 mb-5" aria-label="5 star rating">
+                    {Array.from({ length: 5 }, (_, j) => (
+                      <svg key={j} width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" aria-hidden="true">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-glam-text">{item.name}</p>
-                    <p className="text-xs text-muted">{item.service}</p>
+                  <p className="text-sm text-muted leading-relaxed flex-1 mb-6 italic">&ldquo;{quote}&rdquo;</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-border">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-primary font-bold text-sm shrink-0 border-2 border-white shadow-sm" style={{ backgroundColor: AVATARS[i % AVATARS.length] }} aria-hidden="true">
+                      {(name ?? "?")[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-glam-text">{name}</p>
+                      {svc && <p className="text-xs text-muted">{svc}</p>}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -350,7 +360,10 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
             <p className="text-muted mt-3 text-sm">{t.faq.subtitle}</p>
           </div>
 
-          <FaqAccordion items={t.faq.items} />
+          <FaqAccordion items={dbFaqs.length > 0 ? dbFaqs.map(f => ({
+            q: locale === "ar" ? (f.questionAr || f.question) : f.question,
+            a: locale === "ar" ? (f.answerAr || f.answer) : f.answer,
+          })) : t.faq.items} />
 
           <div className="text-center mt-10">
             <p className="text-sm text-muted">

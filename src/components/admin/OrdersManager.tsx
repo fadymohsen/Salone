@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, Plus, Pencil, Trash2, X, Loader2, SlidersHorizontal, AlertTriangle } from "lucide-react";
 
 type Booking = {
@@ -39,8 +39,10 @@ export default function OrdersManager() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [filterService, setFilterService] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterServices, setFilterServices] = useState<string[]>([]);
+  const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
+  const [showServiceFilter, setShowServiceFilter] = useState(false);
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [form, setForm] = useState<Booking>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -49,14 +51,26 @@ export default function OrdersManager() {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowServiceFilter(false);
+        setShowStatusFilter(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (filterDate) params.set("date", filterDate);
-    if (filterService) params.set("service", filterService);
-    if (filterStatus) params.set("status", filterStatus);
+    if (filterServices.length > 0) params.set("service", filterServices.join(","));
+    if (filterStatuses.length > 0) params.set("status", filterStatuses.join(","));
     try {
       const res = await fetch(`/api/admin/bookings?${params}`);
       const data = await res.json();
@@ -66,7 +80,7 @@ export default function OrdersManager() {
     } finally {
       setLoading(false);
     }
-  }, [search, filterDate, filterService, filterStatus]);
+  }, [search, filterDate, filterServices, filterStatuses]);
 
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
@@ -117,7 +131,14 @@ export default function OrdersManager() {
     fetchBookings();
   };
 
-  const hasFilters = search || filterDate || filterService || filterStatus;
+  const hasFilters = search || filterDate || filterServices.length > 0 || filterStatuses.length > 0;
+
+  const toggleServiceFilter = (name: string) => {
+    setFilterServices(prev => prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]);
+  };
+  const toggleStatusFilter = (status: string) => {
+    setFilterStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
+  };
 
   return (
     <div className="space-y-4">
@@ -145,39 +166,107 @@ export default function OrdersManager() {
       </div>
 
       {/* Filters — separate row */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div ref={filterRef} className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 text-muted shrink-0">
           <SlidersHorizontal size={14} aria-hidden="true" />
           <span className="text-xs font-bold">Filters</span>
         </div>
-        <input
-          type="date"
-          value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
-          className="flex-1 min-w-[140px] bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer"
-        />
-        <select
-          value={filterService}
-          onChange={(e) => setFilterService(e.target.value)}
-          className="flex-1 min-w-[140px] bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer appearance-none"
-        >
-          <option value="">All Services</option>
-          {services.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)}
-        </select>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="flex-1 min-w-[120px] bg-white border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer appearance-none"
-        >
-          <option value="">All Status</option>
-          {STATUSES.map((s) => <option key={s} className="capitalize">{s}</option>)}
-        </select>
+
+        {/* Date picker */}
+        <div className="relative">
+          <input
+            type="date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="bg-white border border-border rounded-xl px-3 py-2.5 text-sm font-medium text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150 cursor-pointer min-w-[140px]"
+          />
+        </div>
+
+        {/* Services multi-select */}
+        <div className="relative">
+          <button type="button" onClick={() => { setShowServiceFilter(!showServiceFilter); setShowStatusFilter(false); }}
+            className={`flex items-center gap-2 bg-white border rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer min-w-[140px] ${
+              filterServices.length > 0 ? "border-primary text-primary" : "border-border text-glam-text"
+            }`}>
+            <span className="truncate">{filterServices.length > 0 ? `${filterServices.length} service${filterServices.length !== 1 ? "s" : ""}` : "All Services"}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-50"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          {showServiceFilter && (
+            <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
+              <div className="max-h-[250px] overflow-y-auto p-2 space-y-1">
+                {services.map(s => {
+                  const checked = filterServices.includes(s.name);
+                  return (
+                    <button key={s.id} type="button" onClick={() => toggleServiceFilter(s.name)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-start transition-all duration-150 cursor-pointer ${
+                        checked ? "bg-primary/5 text-primary font-bold" : "text-glam-text hover:bg-pastel-pink"
+                      }`}>
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "bg-primary border-primary" : "border-border"}`}>
+                        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                      </div>
+                      <span className="truncate">{s.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {filterServices.length > 0 && (
+                <div className="border-t border-border p-2">
+                  <button type="button" onClick={() => setFilterServices([])}
+                    className="w-full text-xs font-bold text-muted hover:text-primary text-center py-1.5 cursor-pointer transition-colors">
+                    Clear selection
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Status multi-select */}
+        <div className="relative">
+          <button type="button" onClick={() => { setShowStatusFilter(!showStatusFilter); setShowServiceFilter(false); }}
+            className={`flex items-center gap-2 bg-white border rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 cursor-pointer min-w-[120px] ${
+              filterStatuses.length > 0 ? "border-primary text-primary" : "border-border text-glam-text"
+            }`}>
+            <span className="truncate">{filterStatuses.length > 0 ? `${filterStatuses.length} status${filterStatuses.length !== 1 ? "es" : ""}` : "All Status"}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-50"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          {showStatusFilter && (
+            <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
+              <div className="p-2 space-y-1">
+                {STATUSES.map(s => {
+                  const checked = filterStatuses.includes(s);
+                  return (
+                    <button key={s} type="button" onClick={() => toggleStatusFilter(s)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-start transition-all duration-150 cursor-pointer capitalize ${
+                        checked ? "bg-primary/5 text-primary font-bold" : "text-glam-text hover:bg-pastel-pink"
+                      }`}>
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${checked ? "bg-primary border-primary" : "border-border"}`}>
+                        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                      </div>
+                      <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${STATUS_COLORS[s]?.split(" ")[0] ?? "bg-gray-200"}`} />
+                      <span>{s}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {filterStatuses.length > 0 && (
+                <div className="border-t border-border p-2">
+                  <button type="button" onClick={() => setFilterStatuses([])}
+                    className="w-full text-xs font-bold text-muted hover:text-primary text-center py-1.5 cursor-pointer transition-colors">
+                    Clear selection
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {hasFilters && (
           <button
-            onClick={() => { setSearch(""); setFilterDate(""); setFilterService(""); setFilterStatus(""); }}
+            onClick={() => { setSearch(""); setFilterDate(""); setFilterServices([]); setFilterStatuses([]); }}
             className="flex items-center gap-1 text-xs text-muted hover:text-primary font-bold px-3 py-2.5 rounded-xl border border-border hover:border-primary/40 transition-all duration-150 cursor-pointer"
           >
-            <X size={12} aria-hidden="true" /> Clear
+            <X size={12} aria-hidden="true" /> Clear All
           </button>
         )}
       </div>

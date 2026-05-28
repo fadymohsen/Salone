@@ -9,10 +9,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search") ?? "";
   const date = searchParams.get("date") ?? "";
-  const service = searchParams.get("service") ?? "";
-  const status = searchParams.get("status") ?? "";
+  const serviceFilter = searchParams.get("service") ?? "";
+  const statusFilter = searchParams.get("status") ?? "";
 
   try {
+    const serviceList = serviceFilter ? serviceFilter.split(",").filter(Boolean) : [];
+    const statusList = statusFilter ? statusFilter.split(",").filter(Boolean) : [];
+
     const bookings = await prisma.booking.findMany({
       where: {
         AND: [
@@ -26,11 +29,11 @@ export async function GET(request: Request) {
               }
             : {},
           date ? { bookingDate: date } : {},
-          service ? { serviceType: service } : {},
-          status ? { status } : {},
+          serviceList.length > 0 ? { serviceType: { in: serviceList } } : {},
+          statusList.length > 0 ? { status: { in: statusList } } : {},
         ],
       },
-      orderBy: [{ bookingDate: "desc" }, { bookingTime: "asc" }],
+      orderBy: [{ bookingDate: "asc" }, { bookingTime: "asc" }],
     });
     return NextResponse.json(bookings);
   } catch (error) {

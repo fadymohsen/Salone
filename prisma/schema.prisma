@@ -138,3 +138,27 @@ model PointsConfig {
   pointsThreshold  Int    @default(100)
   couponDiscount   Int    @default(15)
 }
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  nameAr    String?
+  quote     String
+  quoteAr   String?
+  service   String?
+  serviceAr String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Faq {
+  id        String   @id @default(uuid())
+  question  String
+  questionAr String?
+  answer    String
+  answerAr  String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, CalendarDays, BarChart3, Tag, LogOut, Scissors, Star, Users, FolderOpen } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Tag, LogOut, Scissors, Star, Users, FolderOpen, MessageSquareQuote, HelpCircle } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocale } from "@/lib/i18n/LocaleContext";
 
@@ -14,12 +14,13 @@ export default function AdminNav({ mobile = false }: { mobile?: boolean }) {
 
   const links = [
     { href: `/${locale}/admin`, label: t.admin.dashboard, Icon: LayoutDashboard },
-    { href: `/${locale}/admin/analytics`, label: t.admin.analytics, Icon: BarChart3 },
     { href: `/${locale}/admin/orders`, label: t.admin.orders, Icon: CalendarDays },
-    { href: `/${locale}/admin/promos`, label: t.admin.promos, Icon: Tag },
     { href: `/${locale}/admin/categories`, label: t.admin.categories ?? "Categories", Icon: FolderOpen },
     { href: `/${locale}/admin/services`, label: t.admin.services, Icon: Scissors },
+    { href: `/${locale}/admin/promos`, label: t.admin.promos, Icon: Tag },
     { href: `/${locale}/admin/points`, label: t.admin.points, Icon: Star },
+    { href: `/${locale}/admin/feedbacks`, label: "Feedbacks", Icon: MessageSquareQuote },
+    { href: `/${locale}/admin/faqs`, label: "FAQs", Icon: HelpCircle },
     { href: `/${locale}/admin/users`, label: t.admin.clients, Icon: Users },
   ];
 
