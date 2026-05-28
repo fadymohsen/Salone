@@ -116,24 +116,25 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Schedule */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-serif text-sm font-bold text-glam-text">{d.todaySchedule}</h2>
-            <Link href={`/${locale}/admin/orders`} className="flex items-center gap-1 text-xs font-bold text-primary hover:text-secondary transition-colors duration-150 cursor-pointer">
-              {d.viewAll} <ArrowRight size={12} aria-hidden="true" />
-            </Link>
+      {/* Today's Schedule — full width */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-serif text-sm font-bold text-glam-text">{d.todaySchedule}</h2>
+          <Link href={`/${locale}/admin/orders`} className="flex items-center gap-1 text-xs font-bold text-primary hover:text-secondary transition-colors duration-150 cursor-pointer">
+            {d.viewAll} <ArrowRight size={12} aria-hidden="true" />
+          </Link>
+        </div>
+        {todayBookings.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-border p-10 text-center">
+            <CalendarCheck size={32} className="text-muted/30 mx-auto mb-3" strokeWidth={1.5} aria-hidden="true" />
+            <p className="text-sm text-muted">{d.noAppointmentsToday}</p>
           </div>
-          {todayBookings.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-border p-10 text-center">
-              <CalendarCheck size={32} className="text-muted/30 mx-auto mb-3" strokeWidth={1.5} aria-hidden="true" />
-              <p className="text-sm text-muted">{d.noAppointmentsToday}</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {todayBookings.map(b => (
-                <div key={b.id} className="bg-white rounded-2xl border border-border p-4 flex items-center gap-4 hover:border-primary/30 transition-colors duration-150">
+        ) : (
+          <div className="space-y-2">
+            {todayBookings.map(b => (
+              <div key={b.id} className="bg-white rounded-2xl border border-border p-4 hover:border-primary/30 transition-colors duration-150">
+                {/* Desktop */}
+                <div className="hidden md:flex items-center gap-4">
                   <span className="bg-pastel-pink text-primary font-bold text-sm rounded-xl px-3 py-1.5 shrink-0 flex items-center gap-1.5">
                     <Clock size={12} aria-hidden="true" /> {fmt12(b.bookingTime)}
                   </span>
@@ -143,11 +144,24 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
                   </div>
                   <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>{b.status}</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                {/* Mobile */}
+                <div className="md:hidden space-y-1.5">
+                  <p className="font-bold text-glam-text text-sm">{b.clientName}</p>
+                  <p className="text-xs text-muted">{b.serviceType}</p>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="bg-pastel-pink text-primary font-bold text-xs rounded-lg px-2.5 py-1 flex items-center gap-1">
+                      <Clock size={10} aria-hidden="true" /> {fmt12(b.bookingTime)}
+                    </span>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLORS[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>{b.status}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Services */}
         <div className="bg-white rounded-2xl border border-border p-6">
           <h2 className="font-serif text-sm font-bold text-glam-text mb-5">{a.topServices}</h2>
