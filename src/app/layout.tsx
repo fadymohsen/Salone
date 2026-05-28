@@ -23,6 +23,17 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "GlowBook | Premium Nail & Beauty Bookings in Cairo",
   description: "Book flawless nail artistry and beauty treatments in Heliopolis & New Cairo. Secure your slot in 60 seconds.",
+  openGraph: {
+    title: "GlowBook | Premium Nail & Beauty Bookings in Cairo",
+    description: "Book flawless nail artistry and beauty treatments in Heliopolis & New Cairo. Secure your slot in 60 seconds.",
+    images: [{ url: "/hero.jpg", width: 800, height: 1060, alt: "GlowBook Salon" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GlowBook | Premium Nail & Beauty Bookings in Cairo",
+    description: "Book flawless nail artistry and beauty treatments in Heliopolis & New Cairo.",
+    images: ["/hero.jpg"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
