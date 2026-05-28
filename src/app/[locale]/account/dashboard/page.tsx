@@ -517,7 +517,7 @@ export default function DashboardPage() {
                   {b.status === "booked" && b.paymentStatus !== "paid" && payingId !== b.id && (
                     <button onClick={() => { setPayingId(b.id); setPayMethod(null); setRescheduleId(null); }}
                       className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl shadow-md shadow-primary/25 hover:bg-secondary transition-all duration-200 cursor-pointer active:scale-[0.98] mb-2">
-                      <CreditCard size={14} /> {locale === "ar" ? `ادفعي ${b.amount} ج.م` : `Pay ${b.amount} EGP`}
+                      <CreditCard size={14} /> {locale === "ar" ? `ادفعي ${b.amount ?? 0} ج.م` : `Pay ${b.amount ?? 0} EGP`}
                     </button>
                   )}
 

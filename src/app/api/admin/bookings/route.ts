@@ -53,8 +53,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
 
   try {
+    // Look up service price to set the amount
+    const service = await prisma.service.findUnique({ where: { name: serviceType } });
+    const amount = service?.price ?? null;
+
     const booking = await prisma.booking.create({
-      data: { clientName, clientPhone, clientEmail: clientEmail || null, serviceType, bookingDate, bookingTime, notes: notes || null, promoCode: promoCode || null, userId: userId || null },
+      data: { clientName, clientPhone, clientEmail: clientEmail || null, serviceType, bookingDate, bookingTime, notes: notes || null, promoCode: promoCode || null, userId: userId || null, amount },
     });
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {
