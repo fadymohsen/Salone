@@ -245,21 +245,19 @@ export default function DashboardPage() {
 
         {/* Profile card */}
         <div className="bg-white rounded-3xl p-6 border border-border shadow-sm shadow-primary/5">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-pastel-pink flex items-center justify-center text-primary font-bold text-xl font-serif">
-                {user.name[0].toUpperCase()}
-              </div>
-              <div>
-                <p className="font-serif font-bold text-glam-text text-lg">{user.name}</p>
-                <p className="text-xs text-muted">{user.email}</p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-pastel-pink flex items-center justify-center text-primary font-bold text-xl font-serif">
+              {user.name[0].toUpperCase()}
             </div>
-            <button onClick={handleLogout}
-              className="flex items-center gap-1.5 text-xs text-muted hover:text-red-500 transition-colors duration-150 cursor-pointer font-medium">
-              <LogOut size={13} aria-hidden="true" /> {t.common.signOut}
-            </button>
+            <div>
+              <p className="font-serif font-bold text-glam-text text-lg">{user.name}</p>
+              <p className="text-xs text-muted">{user.email}</p>
+            </div>
           </div>
+          <button onClick={handleLogout}
+            className="w-full mt-4 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-red-200 text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all cursor-pointer">
+            <LogOut size={13} aria-hidden="true" /> {t.common.signOut}
+          </button>
 
           <div className="mt-5 grid grid-cols-3 gap-3">
             <div className="bg-gradient-to-br from-primary/8 to-primary/3 rounded-2xl px-4 py-3.5 text-center flex flex-col justify-between">
