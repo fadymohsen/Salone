@@ -433,8 +433,6 @@ export default function OrdersManager() {
                     { key: "clientName", label: "Name *", type: "text", placeholder: "Farida Amin" },
                     { key: "clientPhone", label: "Phone *", type: "tel", placeholder: "010XXXXXXXX" },
                     { key: "clientEmail", label: "Email", type: "email", placeholder: "client@example.com" },
-                    { key: "promoCode", label: "Promo Code", type: "text", placeholder: "GLOW20" },
-                    { key: "notes", label: "Notes", type: "text", placeholder: "Any special requests…" },
                   ].map(({ key, label, type, placeholder }) => (
                     <div key={key}>
                       <label className="block text-xs font-bold text-glam-text/70 mb-1.5">{label}</label>
