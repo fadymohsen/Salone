@@ -17,7 +17,7 @@ type Booking = {
 };
 
 type CategoryOption = { id: string; name: string };
-type ServiceOption = { id: string; name: string; categoryId: string | null };
+type ServiceOption = { id: string; name: string; price: number; categoryId: string | null };
 
 const TIMES = ["11:00", "12:30", "14:00", "15:30", "17:00", "18:30", "20:00"];
 const STATUSES = ["booked", "confirmed", "completed", "cancelled", "missed"];
@@ -472,12 +472,13 @@ export default function OrdersManager() {
                         {services.filter(s => s.categoryId === selectedCategory).map((s) => (
                           <button key={s.id} type="button"
                             onClick={() => setForm({ ...form, serviceType: s.name })}
-                            className={`px-3 py-2.5 rounded-xl border text-sm font-semibold text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
+                            className={`px-3 py-2.5 rounded-xl border text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
                               form.serviceType === s.name
                                 ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
                                 : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
                             }`}>
-                            {s.name}
+                            <span className="text-sm font-semibold block">{s.name}</span>
+                            <span className={`text-xs mt-0.5 block ${form.serviceType === s.name ? "text-white/80" : "text-primary font-bold"}`}>{s.price} EGP</span>
                           </button>
                         ))}
                       </div>
