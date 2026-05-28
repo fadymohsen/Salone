@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, User, Phone, Mail, ChevronLeft, ChevronRight,
-  Clock, Loader2, CheckCircle2, CreditCard, Smartphone, Banknote, Tag,
+  Clock, Loader2, CheckCircle2, CreditCard, Smartphone, Banknote, Tag, Wallet,
 } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
@@ -93,7 +93,7 @@ function CalendarPicker({
 }
 
 type PayStep = "form" | "payment" | "done";
-type PayMethod = "card" | "instapay" | "vodafone";
+type PayMethod = "card" | "instapay" | "vodafone" | "cash";
 
 function BookingFormContent() {
   const t = useDictionary();
@@ -253,6 +253,7 @@ function BookingFormContent() {
       { id: "card", label: t.booking.creditCard, Icon: CreditCard, desc: t.booking.creditCardDesc },
       { id: "instapay", label: t.booking.instapay, Icon: Smartphone, desc: `${t.booking.instapayDesc1.replace(":", "")} ${INSTAPAY_ID}` },
       { id: "vodafone", label: t.booking.vodafoneCash, Icon: Banknote, desc: `${t.booking.vodafoneDesc1.replace(":", "")} ${VC_NUMBER}` },
+      { id: "cash", label: locale === "ar" ? "الدفع عند الوصول" : "Cash on Arrival", Icon: Wallet, desc: locale === "ar" ? "ادفعي نقداً عند وصولك للصالون" : "Pay in cash when you arrive at the salon" },
     ];
 
     const price = selectedService?.price ?? 0;
@@ -329,6 +330,16 @@ function BookingFormContent() {
               <div className="flex items-center gap-2 text-xs text-muted">
                 <CheckCircle2 size={13} className="text-green-500" aria-hidden="true" />
                 {t.booking.cardSecured}
+              </div>
+            </div>
+          )}
+          {payMethod === "cash" && (
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 space-y-2">
+              <p className="text-sm font-bold text-amber-700">{locale === "ar" ? "الدفع عند الوصول" : "Cash on Arrival"}</p>
+              <p className="text-sm text-amber-600">{locale === "ar" ? "يرجى إحضار المبلغ المطلوب نقداً عند وصولك للصالون. سيتم تأكيد حجزك تلقائياً." : "Please bring the required amount in cash when you arrive at the salon. Your booking will be confirmed automatically."}</p>
+              <div className="flex items-center gap-2 text-xs text-amber-500">
+                <CheckCircle2 size={13} className="text-amber-500" aria-hidden="true" />
+                {locale === "ar" ? "لا حاجة للدفع المسبق" : "No prepayment needed"}
               </div>
             </div>
           )}

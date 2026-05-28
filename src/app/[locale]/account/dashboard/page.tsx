@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   CalendarDays, Clock, Star, LogOut, Loader2, ChevronLeft, ChevronRight,
-  CheckCircle2, XCircle, RefreshCw, Sparkles, Tag, CreditCard, Smartphone, Banknote,
+  CheckCircle2, XCircle, RefreshCw, Sparkles, Tag, CreditCard, Smartphone, Banknote, Wallet,
 } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
@@ -474,6 +474,7 @@ export default function DashboardPage() {
                           { id: "card", label: locale === "ar" ? "بطاقة ائتمان" : "Credit / Debit Card", Icon: CreditCard },
                           { id: "instapay", label: "InstaPay", Icon: Smartphone },
                           { id: "vodafone", label: locale === "ar" ? "فودافون كاش" : "Vodafone Cash", Icon: Banknote },
+                          { id: "cash", label: locale === "ar" ? "الدفع عند الوصول" : "Cash on Arrival", Icon: Wallet },
                         ].map(({ id, label, Icon }) => (
                           <button key={id} type="button" onClick={() => setPayMethod(id)}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-start transition-all duration-150 cursor-pointer ${

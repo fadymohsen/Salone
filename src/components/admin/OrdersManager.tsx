@@ -424,86 +424,111 @@ export default function OrdersManager() {
               </button>
             </div>
             <div className="px-6 py-5 space-y-4">
-              {[
-                { key: "clientName", label: "Name *", type: "text", placeholder: "Farida Amin" },
-                { key: "clientPhone", label: "Phone *", type: "tel", placeholder: "010XXXXXXXX" },
-                { key: "clientEmail", label: "Email", type: "email", placeholder: "client@example.com" },
-                { key: "bookingDate", label: "Date *", type: "date", placeholder: "" },
-                { key: "promoCode", label: "Promo Code", type: "text", placeholder: "GLOW20" },
-                { key: "notes", label: "Notes", type: "text", placeholder: "Any special requests…" },
-              ].map(({ key, label, type, placeholder }) => (
-                <div key={key}>
-                  <label className="block text-xs font-bold text-glam-text/70 mb-1.5">{label}</label>
-                  <input
-                    type={type}
-                    value={(form as Record<string, string>)[key] ?? ""}
-                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                    placeholder={placeholder}
-                    className={INPUT_CLS}
-                  />
-                </div>
-              ))}
-
-              {/* Category */}
-              <div>
-                <label className="block text-xs font-bold text-glam-text/70 mb-2">Category *</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {categories.map((c) => (
-                    <button key={c.id} type="button"
-                      onClick={() => { setSelectedCategory(c.id); setForm({ ...form, serviceType: "" }); }}
-                      className={`px-3 py-2.5 rounded-xl border text-sm font-semibold text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
-                        selectedCategory === c.id
-                          ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
-                          : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
-                      }`}>
-                      {c.name}
-                    </button>
+              {modal === "create" && (
+                <>
+                  {[
+                    { key: "clientName", label: "Name *", type: "text", placeholder: "Farida Amin" },
+                    { key: "clientPhone", label: "Phone *", type: "tel", placeholder: "010XXXXXXXX" },
+                    { key: "clientEmail", label: "Email", type: "email", placeholder: "client@example.com" },
+                    { key: "promoCode", label: "Promo Code", type: "text", placeholder: "GLOW20" },
+                    { key: "notes", label: "Notes", type: "text", placeholder: "Any special requests…" },
+                  ].map(({ key, label, type, placeholder }) => (
+                    <div key={key}>
+                      <label className="block text-xs font-bold text-glam-text/70 mb-1.5">{label}</label>
+                      <input
+                        type={type}
+                        value={(form as Record<string, string>)[key] ?? ""}
+                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                        placeholder={placeholder}
+                        className={INPUT_CLS}
+                      />
+                    </div>
                   ))}
-                </div>
-              </div>
 
-              {/* Service */}
-              {selectedCategory && (
-                <div>
-                  <label className="block text-xs font-bold text-glam-text/70 mb-2">Service *</label>
-                  <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-                    {services.filter(s => s.categoryId === selectedCategory).map((s) => (
-                      <button key={s.id} type="button"
-                        onClick={() => setForm({ ...form, serviceType: s.name })}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-start text-sm font-medium transition-all duration-150 cursor-pointer min-h-[48px] ${
-                          form.serviceType === s.name
-                            ? "border-primary ring-2 ring-primary/15 bg-primary/5 text-primary font-bold"
-                            : "border-border bg-background text-glam-text hover:border-primary/40"
-                        }`}>
-                        <span>{s.name}</span>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                          form.serviceType === s.name ? "border-primary bg-primary" : "border-border"
-                        }`}>
-                          {form.serviceType === s.name && <div className="w-2 h-2 rounded-full bg-white" />}
-                        </div>
-                      </button>
-                    ))}
+                  {/* Category */}
+                  <div>
+                    <label className="block text-xs font-bold text-glam-text/70 mb-2">Category *</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {categories.map((c) => (
+                        <button key={c.id} type="button"
+                          onClick={() => { setSelectedCategory(c.id); setForm({ ...form, serviceType: "" }); }}
+                          className={`px-3 py-2.5 rounded-xl border text-sm font-semibold text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
+                            selectedCategory === c.id
+                              ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                              : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
+                          }`}>
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+
+                  {/* Service */}
+                  {selectedCategory && (
+                    <div>
+                      <label className="block text-xs font-bold text-glam-text/70 mb-2">Service *</label>
+                      <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                        {services.filter(s => s.categoryId === selectedCategory).map((s) => (
+                          <button key={s.id} type="button"
+                            onClick={() => setForm({ ...form, serviceType: s.name })}
+                            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-start text-sm font-medium transition-all duration-150 cursor-pointer min-h-[48px] ${
+                              form.serviceType === s.name
+                                ? "border-primary ring-2 ring-primary/15 bg-primary/5 text-primary font-bold"
+                                : "border-border bg-background text-glam-text hover:border-primary/40"
+                            }`}>
+                            <span>{s.name}</span>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                              form.serviceType === s.name ? "border-primary bg-primary" : "border-border"
+                            }`}>
+                              {form.serviceType === s.name && <div className="w-2 h-2 rounded-full bg-white" />}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
+              {/* Date */}
+              <div>
+                <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Date *</label>
+                <input
+                  type="date"
+                  value={form.bookingDate}
+                  onChange={(e) => setForm({ ...form, bookingDate: e.target.value })}
+                  className={INPUT_CLS}
+                />
+              </div>
+
+              {/* Time */}
               <div>
                 <label className="block text-xs font-bold text-glam-text/70 mb-2">Time *</label>
                 <div className="grid grid-cols-4 gap-1.5">
                   {TIMES.map((t) => (
                     <button key={t} type="button" onClick={() => setForm({ ...form, bookingTime: t })}
                       className={`py-2.5 text-xs font-bold rounded-xl border transition-all duration-150 cursor-pointer min-h-[44px] ${form.bookingTime === t ? "bg-primary text-white border-primary shadow-sm shadow-primary/25" : "border-border text-glam-text hover:border-primary/50 hover:text-primary"}`}
-                    >{t}</button>
+                    >{fmt12(t)}</button>
                   ))}
                 </div>
               </div>
 
+              {/* Status (edit only) */}
               {modal === "edit" && (
                 <div>
-                  <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Status</label>
-                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`${INPUT_CLS} capitalize cursor-pointer`}>
-                    {STATUSES.map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}
-                  </select>
+                  <label className="block text-xs font-bold text-glam-text/70 mb-2">Status</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    {STATUSES.map((s) => (
+                      <button key={s} type="button" onClick={() => setForm({ ...form, status: s })}
+                        className={`py-2.5 text-xs font-bold rounded-xl border capitalize transition-all duration-150 cursor-pointer min-h-[44px] ${
+                          form.status === s
+                            ? `${STATUS_COLORS[s]} ring-2 ring-primary/15`
+                            : "border-border text-glam-text hover:border-primary/50"
+                        }`}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
