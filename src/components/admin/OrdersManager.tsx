@@ -240,7 +240,7 @@ export default function OrdersManager() {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {/* Date picker */}
           <div className="relative">
             <button type="button" onClick={() => { setShowDatePicker(!showDatePicker); setShowServiceFilter(false); setShowStatusFilter(false); }}
