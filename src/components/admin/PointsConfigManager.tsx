@@ -229,10 +229,12 @@ export default function PointsConfigManager() {
             <p className="text-xs font-bold text-muted uppercase tracking-wide">Available Services</p>
             {nonRewardServices.map(s => (
               <div key={s.id} className="bg-background border border-border rounded-2xl px-4 py-3">
-                {/* Desktop: single line */}
+                {/* Desktop */}
                 <div className="hidden md:flex items-center gap-3">
-                  <p className="text-sm font-bold text-glam-text truncate flex-1">{s.name}</p>
-                  <span className="text-sm font-bold text-primary tabular-nums shrink-0">{s.price} EGP</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-glam-text truncate">{s.name}</p>
+                    <p className="text-xs text-primary font-bold mt-0.5">{s.price} EGP</p>
+                  </div>
                   <button
                     onClick={() => handleToggleReward(s, 50, Math.round(s.price * 50 / 100))}
                     disabled={savingId === s.id}
