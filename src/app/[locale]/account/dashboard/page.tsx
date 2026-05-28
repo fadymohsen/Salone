@@ -282,7 +282,9 @@ export default function DashboardPage() {
               {redeemServices.map((s) => {
                 const canAfford = user.points >= s.pointsPrice;
                 const isSelected = redeemId === s.id;
-                const discountedPrice = s.price - s.pointsPrice;
+                const saved = Math.round(s.price * (s.rewardDiscount ?? 0) / 100);
+                const toPay = s.price - saved;
+                const cur = locale === "ar" ? "ج.م" : "EGP";
                 return (
                   <button key={s.id} type="button"
                     onClick={() => { if (canAfford) { setRedeemId(isSelected ? null : s.id); setRedeemDate(""); setRedeemTime(""); } }}
@@ -297,10 +299,13 @@ export default function DashboardPage() {
                         {locale === "ar" ? (s.nameAr || s.name) : s.name}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-muted line-through">{s.price} {locale === "ar" ? "ج.م" : "EGP"}</span>
-                        <span className="text-xs font-bold text-green-600">{discountedPrice} {locale === "ar" ? "ج.م" : "EGP"}</span>
+                        <span className="text-xs text-muted line-through">{s.price} {cur}</span>
+                        <span className="text-xs font-bold text-green-600">{toPay > 0 ? `${toPay} ${cur}` : (locale === "ar" ? "مجاناً" : "Free")}</span>
                       </div>
-                      <span className="inline-flex items-center text-xs font-bold text-primary bg-pastel-pink px-1.5 py-0.5 rounded-full mt-1 w-fit">-{s.rewardDiscount}%</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="inline-flex items-center text-[10px] font-bold text-primary bg-pastel-pink px-1.5 py-0.5 rounded-full">-{s.rewardDiscount}%</span>
+                        <span className="text-[10px] font-bold text-green-600">{locale === "ar" ? `وفّري ${saved} ${cur}` : `Save ${saved} ${cur}`}</span>
+                      </div>
                       {!canAfford && (
                         <p className="text-xs text-red-400 mt-0.5">{locale === "ar" ? `تحتاجين ${s.pointsPrice - user.points} نقطة إضافية` : `Need ${s.pointsPrice - user.points} more points`}</p>
                       )}
@@ -330,11 +335,38 @@ export default function DashboardPage() {
                     </button>
                   ))}
                 </div>
+                {/* Summary before confirming */}
+                {(() => {
+                  const saved = Math.round(selectedRedeemService.price * (selectedRedeemService.rewardDiscount ?? 0) / 100);
+                  const toPay = selectedRedeemService.price - saved;
+                  const cur = locale === "ar" ? "ج.م" : "EGP";
+                  return (
+                    <div className="bg-pastel-pink/40 rounded-2xl p-3 border border-primary/10 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted">{locale === "ar" ? "سعر الخدمة" : "Service price"}</span>
+                        <span className="text-xs text-muted line-through">{selectedRedeemService.price} {cur}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-green-600 font-bold">{locale === "ar" ? "الخصم" : "Discount"} (-{selectedRedeemService.rewardDiscount}%)</span>
+                        <span className="text-xs text-green-600 font-bold">-{saved} {cur}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-primary/10 pt-1">
+                        <span className="text-sm font-bold text-glam-text">{locale === "ar" ? "المبلغ المطلوب" : "Amount to pay"}</span>
+                        <span className="text-sm font-bold text-primary">{toPay > 0 ? `${toPay} ${cur}` : (locale === "ar" ? "مجاناً" : "Free")}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted">{locale === "ar" ? "النقاط المطلوبة" : "Points to redeem"}</span>
+                        <span className="text-xs font-bold text-primary">{selectedRedeemService.pointsPrice} pts</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <button onClick={handleRedeem} disabled={!redeemDate || !redeemTime || redeeming}
                   className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 rounded-2xl shadow-md shadow-primary/25 hover:bg-secondary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]">
                   {redeeming
                     ? <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {locale === "ar" ? "جاري الاستبدال..." : "Redeeming..."}</>
-                    : <><Star size={14} aria-hidden="true" /> {locale === "ar" ? `استبدال ${selectedRedeemService.pointsPrice} نقطة` : `Redeem ${selectedRedeemService.pointsPrice} Points`}</>
+                    : <><Star size={14} aria-hidden="true" /> {locale === "ar" ? `تأكيد واستبدال ${selectedRedeemService.pointsPrice} نقطة` : `Confirm & Redeem ${selectedRedeemService.pointsPrice} Points`}</>
                   }
                 </button>
               </div>

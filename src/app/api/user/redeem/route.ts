@@ -37,21 +37,25 @@ export async function POST(request: Request) {
           description: `Redeemed for ${service.name}`,
         },
       }),
-      prisma.booking.create({
-        data: {
-          userId,
-          clientName: user.name,
-          clientPhone: user.phone ?? "",
-          clientEmail: user.email,
-          serviceType: service.name,
-          bookingDate,
-          bookingTime,
-          status: "confirmed",
-          paymentMethod: "points",
-          paymentStatus: "pending",
-          amount: service.rewardDiscount ? service.price - service.pointsPrice : 0,
-        },
-      }),
+      (() => {
+        const saved = Math.round(service.price * (service.rewardDiscount ?? 0) / 100);
+        const amountToPay = service.price - saved;
+        return prisma.booking.create({
+          data: {
+            userId,
+            clientName: user.name,
+            clientPhone: user.phone ?? "",
+            clientEmail: user.email,
+            serviceType: service.name,
+            bookingDate,
+            bookingTime,
+            status: "confirmed",
+            paymentMethod: "points",
+            paymentStatus: amountToPay > 0 ? "pending" : "paid",
+            amount: amountToPay,
+          },
+        });
+      })(),
     ]);
 
     return NextResponse.json({ success: true });
