@@ -199,11 +199,11 @@ export default function OrdersManager() {
 
   return (
     <div className="space-y-4">
-      {/* New Booking button — top right */}
-      <div className="flex justify-end -mt-12">
+      {/* New Booking button */}
+      <div className="flex justify-end md:-mt-12">
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]"
+          className="w-full md:w-auto flex items-center justify-center gap-1.5 bg-primary text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[44px]"
         >
           <Plus size={15} aria-hidden="true" />
           New Booking
@@ -579,12 +579,14 @@ export default function OrdersManager() {
 
                   {/* Proceed button */}
                   {(clientMode === "existing" && selectedUserId) || (clientMode === "new" && createdCreds) ? (
-                    <div className="flex gap-3">
-                      <button type="button" onClick={() => { setClientMode(null); setSelectedUserId(null); setCreatedCreds(null); }}
-                        className="flex-1 py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">Back</button>
+                    <div className="flex flex-col gap-2">
                       <button type="button" onClick={proceedToBooking}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all cursor-pointer min-h-[48px]">
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-secondary transition-all cursor-pointer min-h-[48px] shadow-sm shadow-primary/20">
                         Next: Book Service →
+                      </button>
+                      <button type="button" onClick={() => { setClientMode(null); setSelectedUserId(null); setCreatedCreds(null); }}
+                        className="w-full py-3 rounded-xl border border-border text-sm font-bold text-muted hover:border-primary hover:text-primary transition-all cursor-pointer min-h-[48px]">
+                        Back
                       </button>
                     </div>
                   ) : null}
