@@ -468,21 +468,16 @@ export default function OrdersManager() {
                   {selectedCategory && (
                     <div>
                       <label className="block text-xs font-bold text-glam-text/70 mb-2">Service *</label>
-                      <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {services.filter(s => s.categoryId === selectedCategory).map((s) => (
                           <button key={s.id} type="button"
                             onClick={() => setForm({ ...form, serviceType: s.name })}
-                            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-start text-sm font-medium transition-all duration-150 cursor-pointer min-h-[48px] ${
+                            className={`px-3 py-2.5 rounded-xl border text-sm font-semibold text-center transition-all duration-150 cursor-pointer min-h-[44px] ${
                               form.serviceType === s.name
-                                ? "border-primary ring-2 ring-primary/15 bg-primary/5 text-primary font-bold"
-                                : "border-border bg-background text-glam-text hover:border-primary/40"
+                                ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                                : "bg-background text-glam-text border-border hover:border-primary/50 hover:text-primary"
                             }`}>
-                            <span>{s.name}</span>
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                              form.serviceType === s.name ? "border-primary bg-primary" : "border-border"
-                            }`}>
-                              {form.serviceType === s.name && <div className="w-2 h-2 rounded-full bg-white" />}
-                            </div>
+                            {s.name}
                           </button>
                         ))}
                       </div>
