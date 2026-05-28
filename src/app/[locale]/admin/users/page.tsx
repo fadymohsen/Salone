@@ -15,15 +15,19 @@ type UserRow = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
+  booked: "bg-amber-50 text-amber-600 border-amber-100",
   confirmed: "bg-blue-50 text-blue-600 border-blue-100",
   completed: "bg-green-50 text-green-600 border-green-100",
   cancelled: "bg-red-50 text-red-500 border-red-100",
+  missed: "bg-orange-50 text-orange-500 border-orange-100",
 };
 
 const STATUS_ICON: Record<string, typeof CheckCircle2> = {
-  confirmed: Clock,
+  booked: Clock,
+  confirmed: CheckCircle2,
   completed: CheckCircle2,
   cancelled: XCircle,
+  missed: XCircle,
 };
 
 export default function UsersPage() {
@@ -220,7 +224,7 @@ export default function UsersPage() {
                       const StatusIcon = STATUS_ICON[b.status] ?? Clock;
                       return (
                         <div key={b.id} className="flex items-center gap-3 bg-background rounded-xl px-4 py-3 border border-border">
-                          <StatusIcon size={15} className={b.status === "completed" ? "text-green-500" : b.status === "cancelled" ? "text-red-400" : "text-blue-500"} aria-hidden="true" />
+                          <StatusIcon size={15} className={b.status === "completed" ? "text-green-500" : b.status === "confirmed" ? "text-blue-500" : b.status === "cancelled" ? "text-red-400" : b.status === "missed" ? "text-orange-500" : "text-amber-500"} aria-hidden="true" />
                           <div className="flex-1 min-w-0">
                             {b.paymentMethod === "points" && (
                               <span className="inline-flex items-center gap-0.5 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full mb-0.5">

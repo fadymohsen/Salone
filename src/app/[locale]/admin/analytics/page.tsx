@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { TrendingUp, Users, CalendarDays, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { TrendingUp, Users, CalendarDays, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -39,9 +39,11 @@ export default async function AnalyticsPage({ params }: { params: Promise<{ loca
   const uniqueClients = new Set(allBookings.map((b) => b.clientPhone)).size;
 
   const STATUS_META: Record<string, { color: string; dot: string; Icon: React.ElementType }> = {
-    confirmed: { color: "bg-blue-50 text-blue-600 border-blue-100", dot: "bg-blue-400", Icon: Clock },
+    booked: { color: "bg-amber-50 text-amber-600 border-amber-100", dot: "bg-amber-400", Icon: Clock },
+    confirmed: { color: "bg-blue-50 text-blue-600 border-blue-100", dot: "bg-blue-400", Icon: CheckCircle2 },
     completed: { color: "bg-green-50 text-green-600 border-green-100", dot: "bg-green-400", Icon: CheckCircle2 },
     cancelled: { color: "bg-red-50 text-red-500 border-red-100", dot: "bg-red-300", Icon: XCircle },
+    missed: { color: "bg-orange-50 text-orange-500 border-orange-100", dot: "bg-orange-400", Icon: AlertCircle },
   };
 
   const kpis = [

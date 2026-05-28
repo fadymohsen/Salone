@@ -52,7 +52,7 @@ model Booking {
   serviceType   String
   bookingDate   String
   bookingTime   String
-  status        String   @default("confirmed")
+  status        String   @default("booked")
   notes         String?
   promoCode     String?
   paymentMethod String?

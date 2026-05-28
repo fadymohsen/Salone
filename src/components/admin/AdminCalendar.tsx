@@ -11,9 +11,11 @@ const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 type DayBooking = { id: string; clientName: string; bookingTime: string; serviceType: string; status: string };
 
 const STATUS_COLORS: Record<string, string> = {
+  booked: "bg-amber-50 text-amber-600 border-amber-100",
   confirmed: "bg-blue-50 text-blue-600 border-blue-100",
   completed: "bg-green-50 text-green-600 border-green-100",
   cancelled: "bg-red-50 text-red-500 border-red-100",
+  missed: "bg-orange-50 text-orange-500 border-orange-100",
 };
 
 export default function AdminCalendar({ dayCountMap, today }: Props) {

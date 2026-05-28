@@ -49,7 +49,7 @@ export async function POST(request: Request) {
             serviceType: service.name,
             bookingDate,
             bookingTime,
-            status: "confirmed",
+            status: amountToPay > 0 ? "booked" : "confirmed",
             paymentMethod: "points",
             paymentStatus: amountToPay > 0 ? "pending" : "paid",
             amount: amountToPay,

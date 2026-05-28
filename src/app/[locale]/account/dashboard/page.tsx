@@ -12,16 +12,18 @@ import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
 type User = { id: string; name: string; email: string; phone: string | null; points: number };
 type Booking = {
   id: string; serviceType: string; bookingDate: string; bookingTime: string;
-  status: string; paymentStatus: string; paymentMethod: string | null; pointsEarned: number | null;
+  status: string; paymentStatus: string; paymentMethod: string | null; amount: number | null; pointsEarned: number | null;
 };
 type Coupon = { id: string; code: string; discount: number; usageCount: number; maxUsage: number | null };
 type CouponsData = { coupons: Coupon[]; threshold: number; pointsPerBooking: number; couponDiscount: number; totalEarned: number; totalRedeemed: number };
 type RedeemService = { id: string; name: string; nameAr: string | null; price: number; pointsPrice: number; rewardDiscount: number; duration: number; availableDays: string; timeSlots: string };
 
 const STATUS_STYLES: Record<string, string> = {
+  booked: "bg-amber-50 text-amber-600 border-amber-100",
   confirmed: "bg-blue-50 text-blue-600 border-blue-100",
   completed: "bg-green-50 text-green-600 border-green-100",
   cancelled: "bg-red-50 text-red-500 border-red-100",
+  missed: "bg-orange-50 text-orange-500 border-orange-100",
 };
 
 function MiniCalendar({ value, onChange, months, dayNames }: { value: string; onChange: (d: string) => void; months: string[]; dayNames: string[] }) {
@@ -194,8 +196,9 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const upcoming = bookings.filter(b => b.bookingDate >= new Date().toISOString().split("T")[0] && b.status === "confirmed");
-  const past = bookings.filter(b => b.bookingDate < new Date().toISOString().split("T")[0] || b.status !== "confirmed");
+  const today = new Date().toISOString().split("T")[0];
+  const upcoming = bookings.filter(b => b.bookingDate >= today && (b.status === "booked" || b.status === "confirmed"));
+  const past = bookings.filter(b => b.bookingDate < today || !["booked", "confirmed"].includes(b.status));
 
   return (
     <div className="min-h-[calc(100dvh-56px)] pb-10">
@@ -389,24 +392,47 @@ export default function DashboardPage() {
             <div className="space-y-3">
               {upcoming.map(b => (
                 <div key={b.id} className="bg-white rounded-2xl border border-border p-4 shadow-sm">
-                  <div className="flex items-start justify-between mb-3">
+                  {/* Header: service + status */}
+                  <div className="flex items-start justify-between mb-2">
                     <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
-                        {b.paymentMethod === "points" && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap">
-                            <Star size={8} aria-hidden="true" /> {locale === "ar" ? "ولاء" : "Loyalty"}
-                          </span>
-                        )}
-                      </div>
+                      {b.paymentMethod === "points" && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap mb-1">
+                          <Star size={8} aria-hidden="true" /> {locale === "ar" ? "برنامج الولاء" : "Loyalty Program"}
+                        </span>
+                      )}
+                      <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="flex items-center gap-1 text-xs text-muted"><CalendarDays size={11} aria-hidden="true" /> {b.bookingDate}</span>
                         <span className="flex items-center gap-1 text-xs text-muted"><Clock size={11} aria-hidden="true" /> {b.bookingTime}</span>
                       </div>
                     </div>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize shrink-0 ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
                       {b.status}
                     </span>
+                  </div>
+
+                  {/* Payment summary */}
+                  <div className={`rounded-xl px-3 py-2.5 mb-3 flex items-center justify-between ${
+                    b.paymentStatus === "paid" ? "bg-green-50 border border-green-100" : "bg-amber-50 border border-amber-100"
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {b.paymentStatus === "paid" ? (
+                        <CheckCircle2 size={14} className="text-green-500 shrink-0" aria-hidden="true" />
+                      ) : (
+                        <Clock size={14} className="text-amber-500 shrink-0" aria-hidden="true" />
+                      )}
+                      <span className={`text-xs font-bold ${b.paymentStatus === "paid" ? "text-green-600" : "text-amber-600"}`}>
+                        {b.paymentStatus === "paid"
+                          ? (locale === "ar" ? "تم الدفع" : "Paid")
+                          : (locale === "ar" ? "في انتظار الدفع" : "Payment Pending")}
+                      </span>
+                    </div>
+                    {b.amount != null && b.amount > 0 && b.paymentStatus !== "paid" && (
+                      <span className="text-xs font-bold text-amber-600">{b.amount} {locale === "ar" ? "ج.م" : "EGP"}</span>
+                    )}
+                    {b.paymentStatus === "paid" && b.amount != null && (
+                      <span className="text-xs font-bold text-green-600">{b.amount > 0 ? `${b.amount} ${locale === "ar" ? "ج.م" : "EGP"}` : (locale === "ar" ? "مجاناً" : "Free")}</span>
+                    )}
                   </div>
 
                   {rescheduleId === b.id ? (
@@ -454,8 +480,14 @@ export default function DashboardPage() {
                   <div className="shrink-0 mt-0.5">
                     {b.status === "completed" ? (
                       <CheckCircle2 size={16} className="text-green-500" aria-hidden="true" />
-                    ) : (
+                    ) : b.status === "confirmed" ? (
+                      <CheckCircle2 size={16} className="text-blue-500" aria-hidden="true" />
+                    ) : b.status === "missed" ? (
+                      <Clock size={16} className="text-orange-500" aria-hidden="true" />
+                    ) : b.status === "cancelled" ? (
                       <XCircle size={16} className="text-red-400" aria-hidden="true" />
+                    ) : (
+                      <Clock size={16} className="text-amber-500" aria-hidden="true" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">

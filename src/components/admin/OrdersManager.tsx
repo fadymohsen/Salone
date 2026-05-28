@@ -20,15 +20,17 @@ type CategoryOption = { id: string; name: string };
 type ServiceOption = { id: string; name: string; categoryId: string | null };
 
 const TIMES = ["11:00", "12:30", "14:00", "15:30", "17:00", "18:30", "20:00"];
-const STATUSES = ["confirmed", "completed", "cancelled"];
+const STATUSES = ["booked", "confirmed", "completed", "cancelled", "missed"];
 
 const STATUS_COLORS: Record<string, string> = {
+  booked: "bg-amber-50 text-amber-600 border-amber-100",
   confirmed: "bg-blue-50 text-blue-600 border-blue-100",
   completed: "bg-green-50 text-green-600 border-green-100",
   cancelled: "bg-red-50 text-red-500 border-red-100",
+  missed: "bg-orange-50 text-orange-500 border-orange-100",
 };
 
-const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "", serviceType: "", bookingDate: "", bookingTime: "11:00", status: "confirmed", notes: "", promoCode: "" };
+const EMPTY: Booking = { id: "", clientName: "", clientPhone: "", clientEmail: "", serviceType: "", bookingDate: "", bookingTime: "11:00", status: "booked", notes: "", promoCode: "" };
 
 const INPUT_CLS = "w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-150";
 
