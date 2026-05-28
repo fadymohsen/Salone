@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Star, CalendarDays, Loader2, Mail, Phone, X, MessageCircle, CheckCircle2, XCircle, Clock, Trash2 } from "lucide-react";
+import { Users, Star, CalendarDays, Loader2, Mail, Phone, X, MessageCircle, CheckCircle2, XCircle, Clock, Trash2, UserPlus, Copy } from "lucide-react";
 import { fmt12 } from "@/lib/fmt12";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 
@@ -40,6 +40,11 @@ export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState<UserRow | null>(null);
+  const [showCreateClient, setShowCreateClient] = useState(false);
+  const [newClient, setNewClient] = useState({ name: "", phone: "", email: "" });
+  const [creatingClient, setCreatingClient] = useState(false);
+  const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string } | null>(null);
+  const [createError, setCreateError] = useState("");
   const [bookingsPopup, setBookingsPopup] = useState<UserRow | null>(null);
 
   const fetchUsers = () => {
@@ -60,6 +65,29 @@ export default function UsersPage() {
     fetchUsers();
   };
 
+  const handleCreateClient = async () => {
+    if (!newClient.name || !newClient.email) return;
+    setCreatingClient(true);
+    setCreateError("");
+    try {
+      const res = await fetch("/api/admin/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newClient),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCreatedCreds({ email: data.user.email, password: data.password });
+        fetchUsers();
+      } else {
+        setCreateError(data.error ?? "Failed to create client");
+      }
+    } catch {
+      setCreateError("Network error");
+    }
+    setCreatingClient(false);
+  };
+
   const filtered = users.filter((usr) =>
     usr.name.toLowerCase().includes(search.toLowerCase()) ||
     usr.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -76,9 +104,15 @@ export default function UsersPage() {
           <h1 className="font-serif text-2xl font-bold text-glam-text">{u.title}</h1>
           <p className="text-sm text-muted mt-0.5">{u.subtitle}</p>
         </div>
-        <div className="flex items-center gap-2 bg-pastel-pink/50 px-4 py-2 rounded-xl border border-primary/10">
-          <Users size={14} className="text-primary" aria-hidden="true" />
-          <span className="text-sm font-bold text-primary">{users.length} {u.total}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-pastel-pink/50 px-4 py-2 rounded-xl border border-primary/10">
+            <Users size={14} className="text-primary" aria-hidden="true" />
+            <span className="text-sm font-bold text-primary">{users.length} {u.total}</span>
+          </div>
+          <button onClick={() => { setShowCreateClient(true); setNewClient({ name: "", phone: "", email: "" }); setCreatedCreds(null); setCreateError(""); }}
+            className="flex items-center gap-1.5 bg-primary text-white font-bold px-4 py-2 rounded-xl text-sm hover:bg-secondary transition-all duration-150 shadow-sm shadow-primary/20 cursor-pointer min-h-[40px]">
+            <UserPlus size={14} aria-hidden="true" /> Add Client
+          </button>
         </div>
       </div>
 
@@ -340,6 +374,77 @@ export default function UsersPage() {
                     );
                   })}
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Client Modal */}
+      {showCreateClient && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget && !createdCreds) setShowCreateClient(false); }}>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl">
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+              <h2 className="font-serif font-bold text-glam-text">New Client</h2>
+              <button onClick={() => setShowCreateClient(false)} aria-label="Close"
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-pastel-pink transition-all cursor-pointer">
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              {!createdCreds ? (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Name *</label>
+                    <input type="text" value={newClient.name} onChange={e => setNewClient({ ...newClient, name: e.target.value })}
+                      placeholder="Farida Amin" className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Phone</label>
+                    <input type="tel" value={newClient.phone} onChange={e => setNewClient({ ...newClient, phone: e.target.value })}
+                      placeholder="010XXXXXXXX" className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-glam-text/70 mb-1.5">Email *</label>
+                    <input type="email" value={newClient.email} onChange={e => setNewClient({ ...newClient, email: e.target.value })}
+                      placeholder="client@example.com" className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-glam-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                  </div>
+                  {createError && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 flex items-center gap-2">
+                      <X size={12} className="text-red-500 shrink-0" />
+                      <p className="text-xs font-medium text-red-500">{createError}</p>
+                    </div>
+                  )}
+                  <button onClick={handleCreateClient} disabled={creatingClient || !newClient.name || !newClient.email}
+                    className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all disabled:opacity-50 cursor-pointer min-h-[48px]">
+                    {creatingClient ? <Loader2 size={14} className="animate-spin" /> : <><UserPlus size={14} /> Create Client</>}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="bg-green-50 border border-green-200 rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-green-500" />
+                      <p className="text-sm font-bold text-green-700">Client created!</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-green-100">
+                        <div><p className="text-xs text-muted">Email</p><p className="text-sm font-bold text-glam-text">{createdCreds.email}</p></div>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(createdCreds.email)} className="text-primary hover:text-secondary cursor-pointer"><Copy size={14} /></button>
+                      </div>
+                      <div className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-green-100">
+                        <div><p className="text-xs text-muted">Password</p><p className="text-sm font-bold text-glam-text font-mono">{createdCreds.password}</p></div>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(createdCreds.password)} className="text-primary hover:text-secondary cursor-pointer"><Copy size={14} /></button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-green-600">Share these credentials with the client.</p>
+                  </div>
+                  <button onClick={() => setShowCreateClient(false)}
+                    className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl hover:bg-secondary transition-all cursor-pointer min-h-[48px]">
+                    Done
+                  </button>
+                </>
               )}
             </div>
           </div>
