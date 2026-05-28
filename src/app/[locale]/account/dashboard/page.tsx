@@ -88,6 +88,7 @@ export default function DashboardPage() {
   const [newTime, setNewTime] = useState("11:00");
   const [saving, setSaving] = useState(false);
   const [redeemServices, setRedeemServices] = useState<RedeemService[]>([]);
+  const [allServices, setAllServices] = useState<{ name: string; nameAr: string | null }[]>([]);
   const [redeemId, setRedeemId] = useState<string | null>(null);
   const [redeemDate, setRedeemDate] = useState("");
   const [redeemTime, setRedeemTime] = useState("");
@@ -106,6 +107,7 @@ export default function DashboardPage() {
       setBookings(Array.isArray(bData) ? bData : []);
       if (cData && !cData.error) setCouponsData(cData);
       if (Array.isArray(svcData)) {
+        setAllServices(Array.isArray(svcData) ? svcData : []);
         setRedeemServices(svcData.filter((s: RedeemService & { pointsPrice: number | null }) => s.pointsPrice != null && s.pointsPrice > 0));
       }
     }).catch(() => { window.location.href = l("/account/login"); })
@@ -227,6 +229,13 @@ export default function DashboardPage() {
   if (!user) return null;
 
   const today = new Date().toISOString().split("T")[0];
+  const statusAr: Record<string, string> = { booked: "محجوز", confirmed: "مؤكد", completed: "مكتمل", cancelled: "ملغي", missed: "فائت" };
+  const statusLabel = (s: string) => locale === "ar" ? (statusAr[s] ?? s) : s;
+  const svcName = (name: string) => {
+    if (locale !== "ar") return name;
+    const svc = allServices.find(s => s.name === name);
+    return svc?.nameAr || name;
+  };
   const upcoming = bookings.filter(b => b.bookingDate >= today && (b.status === "booked" || b.status === "confirmed"));
   const past = bookings.filter(b => b.bookingDate < today || !["booked", "confirmed"].includes(b.status));
 
@@ -256,17 +265,17 @@ export default function DashboardPage() {
             <div className="bg-gradient-to-br from-primary/8 to-primary/3 rounded-2xl px-4 py-3.5 text-center flex flex-col justify-between">
               <p className="text-xs font-bold text-primary uppercase tracking-wide">{t.dashboard.totalEarned}</p>
               <p className="font-serif text-2xl font-bold text-glam-text mt-auto">{couponsData?.totalEarned ?? 0}</p>
-              <p className="text-xs text-muted mt-0.5">pts</p>
+              <p className="text-xs text-muted mt-0.5">{locale === "ar" ? "نقطة" : "pts"}</p>
             </div>
             <div className="bg-gradient-to-br from-secondary/8 to-secondary/3 rounded-2xl px-4 py-3.5 text-center flex flex-col justify-between">
               <p className="text-xs font-bold text-secondary uppercase tracking-wide">{t.dashboard.redeemed}</p>
               <p className="font-serif text-2xl font-bold text-glam-text mt-auto">{couponsData?.totalRedeemed ?? 0}</p>
-              <p className="text-xs text-muted mt-0.5">pts</p>
+              <p className="text-xs text-muted mt-0.5">{locale === "ar" ? "نقطة" : "pts"}</p>
             </div>
             <div className="bg-gradient-to-br from-green-500/8 to-green-500/3 rounded-2xl px-4 py-3.5 text-center flex flex-col justify-between">
               <p className="text-xs font-bold text-green-600 uppercase tracking-wide">{t.dashboard.remaining}</p>
               <p className="font-serif text-2xl font-bold text-glam-text mt-auto">{user.points}</p>
-              <p className="text-xs text-muted mt-0.5">pts</p>
+              <p className="text-xs text-muted mt-0.5">{locale === "ar" ? "نقطة" : "pts"}</p>
             </div>
           </div>
           <p className="text-xs text-muted mt-3 text-center">{t.dashboard.earnPoints}</p>
@@ -345,7 +354,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-sm font-bold tabular-nums ${isSelected ? "text-primary" : canAfford ? "text-glam-text/70" : "text-muted"}`}>
-                        {s.pointsPrice} pts
+                        {s.pointsPrice} {locale === "ar" ? "نقطة" : "pts"}
                       </span>
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? "border-primary bg-primary" : "border-border"}`}>
                         {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
@@ -430,14 +439,14 @@ export default function DashboardPage() {
                           <Star size={8} aria-hidden="true" /> {locale === "ar" ? "برنامج الولاء" : "Loyalty Program"}
                         </span>
                       )}
-                      <p className="font-bold text-glam-text text-sm">{b.serviceType}</p>
+                      <p className="font-bold text-glam-text text-sm">{svcName(b.serviceType)}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="flex items-center gap-1 text-xs text-muted"><CalendarDays size={11} aria-hidden="true" /> {b.bookingDate}</span>
                         <span className="flex items-center gap-1 text-xs text-muted"><Clock size={11} aria-hidden="true" /> {fmt12(b.bookingTime)}</span>
                       </div>
                     </div>
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full border capitalize shrink-0 ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
-                      {b.status}
+                      {statusLabel(b.status)}
                     </span>
                   </div>
 
@@ -584,18 +593,18 @@ export default function DashboardPage() {
                       </span>
                     )}
                     {/* Service name */}
-                    <p className="text-sm font-bold text-glam-text truncate">{b.serviceType}</p>
+                    <p className="text-sm font-bold text-glam-text truncate">{svcName(b.serviceType)}</p>
                     {/* Line 2: Date & time */}
                     <p className="text-xs text-muted mt-0.5">{b.bookingDate} · {fmt12(b.bookingTime)}</p>
                     {/* Line 3: Points + status */}
                     <div className="flex items-center gap-2 mt-1.5">
                       {b.pointsEarned && b.pointsEarned > 0 && (
                         <span className="text-xs font-bold text-primary bg-pastel-pink px-2 py-0.5 rounded-full">
-                          +{b.pointsEarned} pts
+                          +{b.pointsEarned} {locale === "ar" ? "نقطة" : "pts"}
                         </span>
                       )}
                       <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border capitalize ${STATUS_STYLES[b.status] ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
-                        {b.status}
+                        {statusLabel(b.status)}
                       </span>
                     </div>
                   </div>
