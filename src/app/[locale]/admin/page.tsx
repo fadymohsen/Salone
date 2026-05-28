@@ -161,31 +161,29 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Services */}
-        <div className="bg-white rounded-2xl border border-border p-6">
-          <h2 className="font-serif text-sm font-bold text-glam-text mb-5">{a.topServices}</h2>
-          {topServices.length === 0 ? (
-            <p className="text-sm text-muted">{a.noData}</p>
-          ) : (
-            <div className="space-y-4">
-              {topServices.slice(0, 5).map(([service, count], i) => (
-                <div key={service}>
-                  <div className="flex justify-between mb-1.5">
-                    <span className="text-sm font-bold text-glam-text flex items-center gap-1.5">
-                      {i === 0 && <span className="text-primary text-xs font-black">#1</span>}
-                      {service}
-                    </span>
-                    <span className="text-sm font-bold text-primary tabular-nums">{count}</span>
-                  </div>
-                  <div className="h-2 bg-pastel-pink rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${(count / maxService) * 100}%` }} />
-                  </div>
+      {/* Top Services — full width */}
+      <div className="bg-white rounded-2xl border border-border p-6">
+        <h2 className="font-serif text-sm font-bold text-glam-text mb-5">{a.topServices}</h2>
+        {topServices.length === 0 ? (
+          <p className="text-sm text-muted">{a.noData}</p>
+        ) : (
+          <div className="space-y-4">
+            {topServices.slice(0, 5).map(([service, count], i) => (
+              <div key={service}>
+                <div className="flex justify-between mb-1.5">
+                  <span className="text-sm font-bold text-glam-text flex items-center gap-1.5">
+                    {i === 0 && <span className="text-primary text-xs font-black">#1</span>}
+                    {service}
+                  </span>
+                  <span className="text-sm font-bold text-primary tabular-nums">{count}</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                <div className="h-2 bg-pastel-pink rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${(count / maxService) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Booking Status + Monthly Calendar */}
