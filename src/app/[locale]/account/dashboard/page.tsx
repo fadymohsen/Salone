@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   CalendarDays, Clock, Star, LogOut, Loader2, ChevronLeft, ChevronRight,
-  CheckCircle2, XCircle, RefreshCw, Sparkles, Tag,
+  CheckCircle2, XCircle, RefreshCw, Sparkles, Tag, CreditCard, Smartphone, Banknote,
 } from "lucide-react";
 import { useDictionary } from "@/lib/i18n/DictionaryContext";
 import { useLocalePath, useLocale } from "@/lib/i18n/LocaleContext";
@@ -80,6 +80,9 @@ export default function DashboardPage() {
   const [couponsData, setCouponsData] = useState<CouponsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const [payMethod, setPayMethod] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("11:00");
   const [saving, setSaving] = useState(false);
@@ -129,6 +132,30 @@ export default function DashboardPage() {
     } else {
       alert(t.dashboard.couldNotReschedule);
     }
+  };
+
+  const handlePay = async (bookingId: string) => {
+    if (!payMethod) return;
+    setPaying(true);
+    try {
+      const res = await fetch(`/api/user/bookings/${bookingId}/pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethod: payMethod }),
+      });
+      if (res.ok) {
+        setPayingId(null);
+        setPayMethod(null);
+        // Refresh bookings + user data
+        const [bData, meData] = await Promise.all([
+          fetch("/api/user/bookings").then(r => r.json()),
+          fetch("/api/auth/me").then(r => r.json()),
+        ]);
+        setBookings(Array.isArray(bData) ? bData : []);
+        if (meData.user) setUser(meData.user);
+      }
+    } catch {}
+    setPaying(false);
   };
 
   const handleRedeem = async () => {
@@ -435,6 +462,51 @@ export default function DashboardPage() {
                     )}
                   </div>
 
+                  {/* Pay Now section */}
+                  {b.status === "booked" && b.paymentStatus !== "paid" && payingId === b.id && (
+                    <div className="border-t border-border pt-3 mb-3 space-y-3">
+                      <p className="text-xs font-bold text-glam-text">{locale === "ar" ? "اختاري طريقة الدفع:" : "Choose payment method:"}</p>
+                      <div className="space-y-2">
+                        {[
+                          { id: "card", label: locale === "ar" ? "بطاقة ائتمان" : "Credit / Debit Card", Icon: CreditCard },
+                          { id: "instapay", label: "InstaPay", Icon: Smartphone },
+                          { id: "vodafone", label: locale === "ar" ? "فودافون كاش" : "Vodafone Cash", Icon: Banknote },
+                        ].map(({ id, label, Icon }) => (
+                          <button key={id} type="button" onClick={() => setPayMethod(id)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-start transition-all duration-150 cursor-pointer ${
+                              payMethod === id ? "border-primary ring-2 ring-primary/15 bg-primary/5" : "border-border hover:border-primary/40"
+                            }`}>
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${payMethod === id ? "bg-primary" : "bg-pastel-pink"}`}>
+                              <Icon size={16} className={payMethod === id ? "text-white" : "text-primary"} />
+                            </div>
+                            <span className="text-sm font-medium text-glam-text">{label}</span>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ms-auto ${payMethod === id ? "border-primary bg-primary" : "border-border"}`}>
+                              {payMethod === id && <div className="w-2 h-2 rounded-full bg-white" />}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => { setPayingId(null); setPayMethod(null); }}
+                          className="flex-1 py-2.5 rounded-xl border border-border text-xs font-bold text-muted hover:border-primary hover:text-primary transition-all duration-150 cursor-pointer">
+                          {t.common.cancel}
+                        </button>
+                        <button onClick={() => handlePay(b.id)} disabled={!payMethod || paying}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-secondary transition-all duration-150 disabled:opacity-50 cursor-pointer">
+                          {paying ? <Loader2 size={12} className="animate-spin" /> : <><CreditCard size={12} /> {locale === "ar" ? "تأكيد الدفع" : "Confirm Payment"}</>}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  {b.status === "booked" && b.paymentStatus !== "paid" && payingId !== b.id && (
+                    <button onClick={() => { setPayingId(b.id); setPayMethod(null); setRescheduleId(null); }}
+                      className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 rounded-xl shadow-md shadow-primary/25 hover:bg-secondary transition-all duration-200 cursor-pointer active:scale-[0.98] mb-2">
+                      <CreditCard size={14} /> {locale === "ar" ? `ادفعي ${b.amount} ج.م` : `Pay ${b.amount} EGP`}
+                    </button>
+                  )}
+
                   {rescheduleId === b.id ? (
                     <div className="border-t border-border pt-3 space-y-3">
                       <p className="text-xs font-bold text-glam-text">{t.dashboard.chooseNewDateTime}</p>
@@ -459,7 +531,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ) : (
-                    <button onClick={() => { setRescheduleId(b.id); setNewDate(b.bookingDate); setNewTime(b.bookingTime); }}
+                    <button onClick={() => { setRescheduleId(b.id); setNewDate(b.bookingDate); setNewTime(b.bookingTime); setPayingId(null); }}
                       className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-secondary transition-colors duration-150 cursor-pointer mt-1">
                       <RefreshCw size={12} aria-hidden="true" /> {t.dashboard.reschedule}
                     </button>

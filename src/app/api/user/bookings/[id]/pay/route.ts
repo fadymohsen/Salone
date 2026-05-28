@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserIdFromCookie } from "@/lib/user-auth";
 
-export async function PUT(
+export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -10,22 +10,23 @@ export async function PUT(
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { bookingDate, bookingTime } = await request.json();
-
-  if (!bookingDate || !bookingTime)
-    return NextResponse.json({ error: "Date and time are required." }, { status: 400 });
+  const { paymentMethod } = await request.json();
 
   const booking = await prisma.booking.findUnique({ where: { id } });
 
   if (!booking || booking.userId !== userId)
     return NextResponse.json({ error: "Booking not found." }, { status: 404 });
 
-  if (!["booked", "confirmed"].includes(booking.status))
-    return NextResponse.json({ error: "Only active bookings can be rescheduled." }, { status: 400 });
+  if (booking.status !== "booked" || booking.paymentStatus === "paid")
+    return NextResponse.json({ error: "This booking cannot be paid." }, { status: 400 });
 
   const updated = await prisma.booking.update({
     where: { id },
-    data: { bookingDate, bookingTime },
+    data: {
+      status: "confirmed",
+      paymentStatus: "paid",
+      paymentMethod: paymentMethod || "card",
+    },
   });
 
   return NextResponse.json(updated);
