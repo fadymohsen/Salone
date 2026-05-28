@@ -285,10 +285,17 @@ export default function ServiceManager() {
   };
 
   const toggleActive = async (s: Service) => {
+    const becoming = !s.isActive;
+    const updates: Record<string, unknown> = { ...s, isActive: becoming };
+    // When deactivating: remove from homepage and remove popular
+    if (!becoming) {
+      updates.featured = false;
+      updates.popular = false;
+    }
     await fetch(`/api/admin/services/${s.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...s, isActive: !s.isActive }),
+      body: JSON.stringify(updates),
     });
     fetchServices();
   };
